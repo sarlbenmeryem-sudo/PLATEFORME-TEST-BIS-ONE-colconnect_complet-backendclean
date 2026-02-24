@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Any, Dict
 
 from fastapi import FastAPI, HTTPException
-from engine.arbitrage import run_engine
+from engine.arbitrage_v2 import calculer_arbitrage_2_0
 from pydantic import BaseModel
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
@@ -171,9 +171,15 @@ def get_projets(collectivite_id: str):
 # ARBITRAGE - RUN (création + stockage)
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
-def run_arbitrage(collectivite_id: str, payload: Dict[str, Any]):
+def run_arbitrage(collectivite_id: str, payload: dict):
     db = get_db()
-
+    payload["collectivite_id"] = collectivite_id
+    result = calculer_arbitrage_2_0(payload)
+    arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
+    result["arbitrage_id"] = arbitrage_id
+    result["created_at"] = datetime.utcnow()
+    db.arbitrages.insert_one(result)
+    return result
     results, synthese = run_engine(db, collectivite_id, payload)
 
     arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
