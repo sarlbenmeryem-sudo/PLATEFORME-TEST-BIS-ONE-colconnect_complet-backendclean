@@ -174,6 +174,24 @@ def get_projets(collectivite_id: str):
 def run_arbitrage(collectivite_id: str, payload: Dict[str, Any]):
     db = get_db()
 
+    results, synthese = run_engine(db, collectivite_id, payload)
+
+    arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
+
+    doc = dict(payload)
+    doc["collectivite_id"] = collectivite_id
+    doc["arbitrage_id"] = arbitrage_id
+    doc["created_at"] = datetime.utcnow()
+    doc["synthese"] = synthese
+
+    db.arbitrages.insert_one(doc)
+
+    return {
+        "status": "ok",
+        "collectivite_id": collectivite_id,
+        "arbitrage_id": arbitrage_id,
+        "synthese": synthese
+    }
     arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
 
     doc = dict(payload)
