@@ -1,3 +1,7 @@
 
 requirements.txt.bak.*
 *.bak.*
+
+# ColConnect backups
+requirements.txt.bak.*
+*.bak.*
