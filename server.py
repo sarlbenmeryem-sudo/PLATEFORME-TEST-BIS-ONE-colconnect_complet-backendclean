@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Any, Dict
 
 from fastapi import FastAPI, HTTPException
+from fastapi import Body
 from engine.arbitrage_v2 import calculer_arbitrage_2_0
 from pydantic import BaseModel
 from pymongo import MongoClient
@@ -171,7 +172,7 @@ def get_projets(collectivite_id: str):
 # ARBITRAGE - RUN (création + stockage)
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
-def run_arbitrage(collectivite_id: str, payload: dict):
+def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
     try:
         db = get_db()
         payload["collectivite_id"] = collectivite_id
@@ -237,3 +238,10 @@ def debug_created_at_type(collectivite_id: str):
         "python_type": str(type(doc.get("created_at"))),
     }
 
+
+# -----------------------------
+# DEBUG - ECHO (verif parsing JSON)
+# -----------------------------
+@app.post("/api/debug/echo")
+def debug_echo(payload: dict = Body(...)):
+    return {"ok": True, "payload": payload}
