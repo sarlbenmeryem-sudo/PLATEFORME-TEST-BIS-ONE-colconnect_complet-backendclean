@@ -168,7 +168,7 @@ def run_arbitrage(collectivite_id: str, payload: Dict[str, Any]):
     doc = dict(payload)
     doc["collectivite_id"] = collectivite_id
     doc["arbitrage_id"] = arbitrage_id
-    doc["created_at"] = datetime.utcnow().isoformat()
+    doc["created_at"] = datetime.utcnow()
 
     db.arbitrages.insert_one(doc)
 
