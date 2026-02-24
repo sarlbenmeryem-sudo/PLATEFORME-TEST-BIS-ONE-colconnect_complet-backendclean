@@ -1,35 +1,34 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from pymongo import MongoClient
 import os
+from datetime import datetime
+import uuid
 
-# --- Mongo (on le garde prêt, mais on ne l'utilise pas encore ici) ---
+# --- Mongo ---
 MONGO_URI = os.getenv("MONGO_URI", "")
 mongo_client = MongoClient(MONGO_URI) if MONGO_URI else None
 db = mongo_client["colconnect"] if mongo_client else None
 
-# --- FastAPI app ---
 app = FastAPI()
 
-
-# --- Modèles arbitrage (version simple, sans Mongo pour l’instant) ---
+# -----------------------------
+# MODELES
+# -----------------------------
 
 class PPI(BaseModel):
     cout_total_ttc: float
     periode_mandat: str
-
 
 class PhasageItem(BaseModel):
     annee: int
     phase: str
     montant: float
 
-
 class PlanFinancementItem(BaseModel):
     source: str
     montant: float
-
 
 class Scoring(BaseModel):
     impact_service_public: float
@@ -39,12 +38,10 @@ class Scoring(BaseModel):
     risque_financier: float
     score_global: float
 
-
 class Decision(BaseModel):
-    status: str  # KEEP / DEFER / DROP
+    status: str
     justification: str
     decalage_annee: Optional[int] = None
-
 
 class ArbitrageProjet(BaseModel):
     id: str
@@ -56,7 +53,6 @@ class ArbitrageProjet(BaseModel):
     scoring: Scoring
     decision: Decision
 
-
 class ArbitrageSynthese(BaseModel):
     nb_projets_total: int
     nb_keep: int
@@ -65,7 +61,6 @@ class ArbitrageSynthese(BaseModel):
     investissement_mandat: dict
     impact_capacite_desendettement: dict
     commentaire_politique: Optional[str] = None
-
 
 class ArbitrageFull(BaseModel):
     collectivite_id: str
@@ -78,8 +73,9 @@ class ArbitrageFull(BaseModel):
     synthese: ArbitrageSynthese
 
 
-# --- Endpoint test Mongo existant (on le garde) ---
-
+# -----------------------------
+# TEST MONGO
+# -----------------------------
 @app.get("/api/test-mongo")
 def test_mongo():
     if not mongo_client:
@@ -91,70 +87,27 @@ def test_mongo():
         return {"status": "error", "mongo": "connection_failed"}
 
 
-# --- NOUVEL endpoint arbitrage:full (exemple statique pour l’instant) ---
-
-@app.get(
-    "/api/collectivites/{collectivite_id}/arbitrage:full",
-    response_model=ArbitrageFull,
-)
-def get_arbitrage_full(collectivite_id: str):
-    # Pour l’instant : on renvoie un exemple fixe (Nova-sur-Marne)
-    return {
-        "collectivite_id": "nova-sur-marne-94000",
-        "arbitrage_id": "arb-2025-0001",
-        "mandat": "2025-2030",
-        "status": {
-            "state": "done",
-            "impact": "eleve",
-            "urgence": "elevee",
-            "horizon": "mandat",
-        },
-        "contraintes": {
-            "budget_investissement_max": 20000000,
-            "seuil_capacite_desendettement_ans": 15,
-            "commentaire": "Scénario cible : maintenir la capacité de désendettement sous 15 ans à horizon 2028.",
-        },
-        "hypotheses": {
-            "taux_subventions_moyen": 0.35,
-            "inflation_travaux": 0.03,
-            "annee_reference": 2025,
-        },
-        "projets": [],  # on branchera Mongo plus tard
-        "synthese": {
-            "nb_projets_total": 5,
-            "nb_keep": 3,
-            "nb_defer": 1,
-            "nb_drop": 1,
-            "investissement_mandat": {
-                "cout_total_ttc_initial": 39000000,
-                "cout_total_ttc_retenu": 29000000,
-                "economies_realisees": 10000000,
-            },
-            "impact_capacite_desendettement": {
-                "capacite_initiale_2025_ans": 30,
-                "capacite_proj_2028_ans": 16,
-                "commentaire": "Le scénario retenu permet de réduire la trajectoire de dette mais reste proche du seuil politique fixé (15 ans).",
-            },
-            "commentaire_politique": "Scénario équilibré maintenant les priorités éducatives et climatiques.",
-        },
-        from fastapi import HTTPException
-
+# -----------------------------
+# IMPORT PROJETS
+# -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/projets:import")
 def import_projets(collectivite_id: str, projets: List[dict]):
     if not db:
         raise HTTPException(status_code=500, detail="MongoDB non configuré")
 
-    # On supprime les anciens projets de cette collectivité
     db.projets.delete_many({"collectivite_id": collectivite_id})
 
-    # On insère les nouveaux
     for p in projets:
         p["collectivite_id"] = collectivite_id
         db.projets.insert_one(p)
 
     return {"status": "ok", "count": len(projets)}
 
-    @app.get("/api/collectivites/{collectivite_id}/projets")
+
+# -----------------------------
+# GET PROJETS
+# -----------------------------
+@app.get("/api/collectivites/{collectivite_id}/projets")
 def get_projets(collectivite_id: str):
     if not db:
         raise HTTPException(status_code=500, detail="MongoDB non configuré")
@@ -163,37 +116,14 @@ def get_projets(collectivite_id: str):
     return projets
 
 
-    }
-    @app.get("/api/collectivites/{collectivite_id}/arbitrage:full", response_model=ArbitrageFull)
-def get_arbitrage_full(collectivite_id: str):
-    projets = []
-    if db:
-        projets = list(db.projets.find({"collectivite_id": collectivite_id}, {"_id": 0}))
-
-    return {
-        "collectivite_id": collectivite_id,
-        "arbitrage_id": "arb-2025-0001",
-        "mandat": "2025-2030",
-        "status": {...},
-        "contraintes": {...},
-        "hypotheses": {...},
-        "projets": projets,
-        "synthese": {...}
-    }
-from datetime import datetime
-from fastapi import HTTPException
-import uuid
-
-
-# -------------------------------
-#  POST : lancer un arbitrage et le stocker dans Mongo
-# -------------------------------
+# -----------------------------
+# POST ARBITRAGE RUN
+# -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
 def run_arbitrage(collectivite_id: str, payload: dict):
     if not db:
         raise HTTPException(status_code=500, detail="MongoDB non configuré")
 
-    # Générer un arbitrage_id unique
     arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
 
     payload["collectivite_id"] = collectivite_id
@@ -205,9 +135,9 @@ def run_arbitrage(collectivite_id: str, payload: dict):
     return {"status": "ok", "arbitrage_id": arbitrage_id}
 
 
-# -------------------------------
-#  GET : récupérer le dernier arbitrage d’une collectivité
-# -------------------------------
+# -----------------------------
+# GET LAST ARBITRAGE
+# -----------------------------
 @app.get("/api/collectivites/{collectivite_id}/arbitrage:full")
 def get_last_arbitrage(collectivite_id: str):
     if not db:
@@ -225,9 +155,9 @@ def get_last_arbitrage(collectivite_id: str):
     return arbitrage
 
 
-# -------------------------------
-#  GET : récupérer un arbitrage précis par arbitrage_id
-# -------------------------------
+# -----------------------------
+# GET ARBITRAGE BY ID
+# -----------------------------
 @app.get("/api/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}")
 def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str):
     if not db:
@@ -242,4 +172,5 @@ def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str):
         raise HTTPException(status_code=404, detail="Arbitrage introuvable")
 
     return arbitrage
+
 
