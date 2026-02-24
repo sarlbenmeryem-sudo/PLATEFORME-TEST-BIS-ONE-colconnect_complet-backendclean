@@ -137,4 +137,47 @@ def get_arbitrage_full(collectivite_id: str):
             },
             "commentaire_politique": "Scénario équilibré maintenant les priorités éducatives et climatiques.",
         },
+        from fastapi import HTTPException
+
+@app.post("/api/collectivites/{collectivite_id}/projets:import")
+def import_projets(collectivite_id: str, projets: List[dict]):
+    if not db:
+        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+
+    # On supprime les anciens projets de cette collectivité
+    db.projets.delete_many({"collectivite_id": collectivite_id})
+
+    # On insère les nouveaux
+    for p in projets:
+        p["collectivite_id"] = collectivite_id
+        db.projets.insert_one(p)
+
+    return {"status": "ok", "count": len(projets)}
+
+    @app.get("/api/collectivites/{collectivite_id}/projets")
+def get_projets(collectivite_id: str):
+    if not db:
+        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+
+    projets = list(db.projets.find({"collectivite_id": collectivite_id}, {"_id": 0}))
+    return projets
+
+
     }
+    @app.get("/api/collectivites/{collectivite_id}/arbitrage:full", response_model=ArbitrageFull)
+def get_arbitrage_full(collectivite_id: str):
+    projets = []
+    if db:
+        projets = list(db.projets.find({"collectivite_id": collectivite_id}, {"_id": 0}))
+
+    return {
+        "collectivite_id": collectivite_id,
+        "arbitrage_id": "arb-2025-0001",
+        "mandat": "2025-2030",
+        "status": {...},
+        "contraintes": {...},
+        "hypotheses": {...},
+        "projets": projets,
+        "synthese": {...}
+    }
+
