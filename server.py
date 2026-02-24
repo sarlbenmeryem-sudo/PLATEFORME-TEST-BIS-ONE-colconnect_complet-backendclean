@@ -1,22 +1,63 @@
+import os
+import uuid
+from datetime import datetime
+from typing import List, Optional, Any, Dict
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
 from pymongo import MongoClient
-import os
-from datetime import datetime
-import uuid
+from pymongo.errors import PyMongoError
 
-# --- Mongo ---
-MONGO_URI = os.getenv("MONGO_URI", "")
-mongo_client = MongoClient(MONGO_URI) if MONGO_URI else None
-db = mongo_client["colconnect"] if mongo_client else None
+# -----------------------------
+# CONFIG
+# -----------------------------
+MONGO_URI = os.getenv("MONGO_URI", "").strip()
+DB_NAME = os.getenv("DB_NAME", "colconnect").strip()
 
 app = FastAPI()
 
 # -----------------------------
-# MODELES
+# HEALTH (Render)
 # -----------------------------
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "plateforme-colconnect-api"}
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+# -----------------------------
+# MONGO (lazy init + safe)
+# -----------------------------
+mongo_client: Optional[MongoClient] = None
+
+def get_db():
+    """
+    Retourne la DB Mongo si dispo, sinon lève une 500.
+    On initialise le client à la demande (évite de crasher au boot).
+    """
+    global mongo_client
+    if not MONGO_URI:
+        raise HTTPException(status_code=500, detail="MongoDB non configuré (MONGO_URI manquante)")
+
+    if mongo_client is None:
+        try:
+            mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        except PyMongoError as e:
+            raise HTTPException(status_code=500, detail=f"MongoClient init failed: {e}")
+
+    try:
+        # ping pour valider la connectivité
+        mongo_client.admin.command("ping")
+    except PyMongoError as e:
+        raise HTTPException(status_code=500, detail=f"MongoDB ping failed: {e}")
+
+    return mongo_client[DB_NAME]
+
+# -----------------------------
+# MODELS (arbitrage)
+# -----------------------------
 class PPI(BaseModel):
     cout_total_ttc: float
     periode_mandat: str
@@ -33,25 +74,24 @@ class PlanFinancementItem(BaseModel):
 class Scoring(BaseModel):
     impact_service_public: float
     impact_transition: float
-    urgence: float
-    visibilite_politique: float
+    maturite: float
     risque_financier: float
     score_global: float
 
 class Decision(BaseModel):
-    status: str
+    status: str  # KEEP / DEFER / DROP
     justification: str
     decalage_annee: Optional[int] = None
 
 class ArbitrageProjet(BaseModel):
     id: str
     nom: str
-    thematique: List[str]
-    ppi: PPI
-    phasage: List[PhasageItem]
-    plan_financement: List[PlanFinancementItem]
-    scoring: Scoring
-    decision: Decision
+    type: Optional[str] = None
+    ppi: Optional[PPI] = None
+    phasage: Optional[List[PhasageItem]] = None
+    plan_financement: Optional[List[PlanFinancementItem]] = None
+    scoring: Optional[Scoring] = None
+    decision: Optional[Decision] = None
 
 class ArbitrageSynthese(BaseModel):
     nb_projets_total: int
@@ -69,105 +109,103 @@ class ArbitrageFull(BaseModel):
     status: dict
     contraintes: dict
     hypotheses: dict
-    projets: List[ArbitrageProjet]
+    projets: List[dict]
     synthese: ArbitrageSynthese
-
 
 # -----------------------------
 # TEST MONGO
 # -----------------------------
 @app.get("/api/test-mongo")
 def test_mongo():
-    if not mongo_client:
+    if not MONGO_URI:
         return {"status": "error", "mongo": "not_configured"}
-    try:
-        mongo_client.admin.command("ping")
-        return {"status": "ok", "mongo": "connected"}
-    except Exception:
-        return {"status": "error", "mongo": "connection_failed"}
 
+    global mongo_client
+    try:
+        if mongo_client is None:
+            mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        mongo_client.admin.command("ping")
+        return {"status": "ok", "mongo": "connected", "db": DB_NAME}
+    except PyMongoError as e:
+        return {"status": "error", "mongo": "connection_failed", "detail": str(e)}
 
 # -----------------------------
-# IMPORT PROJETS
+# PROJETS - IMPORT
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/projets:import")
-def import_projets(collectivite_id: str, projets: List[dict]):
-    if not db:
-        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+def import_projets(collectivite_id: str, projets: List[Dict[str, Any]]):
+    db = get_db()
 
+    # Supprime les anciens projets de cette collectivité
     db.projets.delete_many({"collectivite_id": collectivite_id})
 
-    for p in projets:
-        p["collectivite_id"] = collectivite_id
-        db.projets.insert_one(p)
+    # Insère les nouveaux
+    if projets:
+        for p in projets:
+            p["collectivite_id"] = collectivite_id
+        db.projets.insert_many(projets)
 
     return {"status": "ok", "count": len(projets)}
 
-
 # -----------------------------
-# GET PROJETS
+# PROJETS - LISTE
 # -----------------------------
 @app.get("/api/collectivites/{collectivite_id}/projets")
 def get_projets(collectivite_id: str):
-    if not db:
-        raise HTTPException(status_code=500, detail="MongoDB non configuré")
-
+    db = get_db()
     projets = list(db.projets.find({"collectivite_id": collectivite_id}, {"_id": 0}))
     return projets
 
-
 # -----------------------------
-# POST ARBITRAGE RUN
+# ARBITRAGE - RUN (création + stockage)
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
-def run_arbitrage(collectivite_id: str, payload: dict):
-    if not db:
-        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+def run_arbitrage(collectivite_id: str, payload: Dict[str, Any]):
+    db = get_db()
 
     arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
 
-    payload["collectivite_id"] = collectivite_id
-    payload["arbitrage_id"] = arbitrage_id
-    payload["date_run"] = datetime.utcnow().isoformat()
+    doc = dict(payload)
+    doc["collectivite_id"] = collectivite_id
+    doc["arbitrage_id"] = arbitrage_id
+    doc["created_at"] = datetime.utcnow().isoformat()
 
-    db.arbitrages.insert_one(payload)
+    db.arbitrages.insert_one(doc)
 
-    return {"status": "ok", "arbitrage_id": arbitrage_id}
-
+    return {"status": "ok", "collectivite_id": collectivite_id, "arbitrage_id": arbitrage_id}
 
 # -----------------------------
-# GET LAST ARBITRAGE
+# ARBITRAGE - FULL (dernier arbitrage + projets)
 # -----------------------------
 @app.get("/api/collectivites/{collectivite_id}/arbitrage:full")
 def get_last_arbitrage(collectivite_id: str):
-    if not db:
-        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+    db = get_db()
 
     arbitrage = db.arbitrages.find_one(
         {"collectivite_id": collectivite_id},
-        sort=[("date_run", -1)],
-        projection={"_id": 0}
+        sort=[("created_at", -1)],
+        projection={"_id": 0},
     )
 
     if not arbitrage:
-        raise HTTPException(status_code=404, detail="Aucun arbitrage trouvé")
+        raise HTTPException(status_code=404, detail="Aucun arbitrage trouvé pour cette collectivité")
+
+    projets = list(db.projets.find({"collectivite_id": collectivite_id}, {"_id": 0}))
+    arbitrage["projets"] = projets
 
     return arbitrage
 
-
 # -----------------------------
-# GET ARBITRAGE BY ID
+# ARBITRAGE - BY ID
 # -----------------------------
 @app.get("/api/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}")
 def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str):
-    if not db:
-        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+    db = get_db()
 
     arbitrage = db.arbitrages.find_one(
         {"collectivite_id": collectivite_id, "arbitrage_id": arbitrage_id},
-        {"_id": 0}
+        projection={"_id": 0},
     )
-
     if not arbitrage:
         raise HTTPException(status_code=404, detail="Arbitrage introuvable")
 
