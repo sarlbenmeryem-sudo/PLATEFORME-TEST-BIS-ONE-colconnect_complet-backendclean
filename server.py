@@ -17,6 +17,16 @@ DB_NAME = os.getenv("DB_NAME", "colconnect").strip()
 app = FastAPI()
 
 # -----------------------------
+# VERSION ENDPOINT (debug deploy)
+# -----------------------------
+APP_GIT_COMMIT = os.getenv("RENDER_GIT_COMMIT", "unknown")
+
+@app.get("/api/version")
+def version():
+    return {"render_git_commit": APP_GIT_COMMIT}
+
+
+# -----------------------------
 # HEALTH (Render)
 # -----------------------------
 @app.get("/")
