@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Any, Dict
 
 from fastapi import FastAPI, HTTPException
+from engine.arbitrage import run_engine
 from pydantic import BaseModel
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
