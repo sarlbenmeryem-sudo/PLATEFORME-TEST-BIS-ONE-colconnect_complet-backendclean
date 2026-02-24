@@ -172,17 +172,17 @@ def get_projets(collectivite_id: str):
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
 def run_arbitrage(collectivite_id: str, payload: dict):
-    db = get_db()
-
-    payload["collectivite_id"] = collectivite_id
-    result = calculer_arbitrage_2_0(payload)
-
-    arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
-    result["arbitrage_id"] = arbitrage_id
-    result["created_at"] = datetime.utcnow()
-
-    db.arbitrages.insert_one(result)
-    return result
+    try:
+        db = get_db()
+        payload["collectivite_id"] = collectivite_id
+        result = calculer_arbitrage_2_0(payload)
+        arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
+        result["arbitrage_id"] = arbitrage_id
+        result["created_at"] = datetime.utcnow()
+        db.arbitrages.insert_one(result)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 # -----------------------------
 # ARBITRAGE - FULL (dernier arbitrage + projets)
 # -----------------------------
