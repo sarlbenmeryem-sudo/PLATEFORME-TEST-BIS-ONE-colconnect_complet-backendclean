@@ -180,4 +180,66 @@ def get_arbitrage_full(collectivite_id: str):
         "projets": projets,
         "synthese": {...}
     }
+from datetime import datetime
+from fastapi import HTTPException
+import uuid
+
+
+# -------------------------------
+#  POST : lancer un arbitrage et le stocker dans Mongo
+# -------------------------------
+@app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
+def run_arbitrage(collectivite_id: str, payload: dict):
+    if not db:
+        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+
+    # Générer un arbitrage_id unique
+    arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
+
+    payload["collectivite_id"] = collectivite_id
+    payload["arbitrage_id"] = arbitrage_id
+    payload["date_run"] = datetime.utcnow().isoformat()
+
+    db.arbitrages.insert_one(payload)
+
+    return {"status": "ok", "arbitrage_id": arbitrage_id}
+
+
+# -------------------------------
+#  GET : récupérer le dernier arbitrage d’une collectivité
+# -------------------------------
+@app.get("/api/collectivites/{collectivite_id}/arbitrage:full")
+def get_last_arbitrage(collectivite_id: str):
+    if not db:
+        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+
+    arbitrage = db.arbitrages.find_one(
+        {"collectivite_id": collectivite_id},
+        sort=[("date_run", -1)],
+        projection={"_id": 0}
+    )
+
+    if not arbitrage:
+        raise HTTPException(status_code=404, detail="Aucun arbitrage trouvé")
+
+    return arbitrage
+
+
+# -------------------------------
+#  GET : récupérer un arbitrage précis par arbitrage_id
+# -------------------------------
+@app.get("/api/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}")
+def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str):
+    if not db:
+        raise HTTPException(status_code=500, detail="MongoDB non configuré")
+
+    arbitrage = db.arbitrages.find_one(
+        {"collectivite_id": collectivite_id, "arbitrage_id": arbitrage_id},
+        {"_id": 0}
+    )
+
+    if not arbitrage:
+        raise HTTPException(status_code=404, detail="Arbitrage introuvable")
+
+    return arbitrage
 
