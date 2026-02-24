@@ -5,3 +5,4 @@ requirements.txt.bak.*
 # ColConnect backups
 requirements.txt.bak.*
 *.bak.*
+server_backup.py
