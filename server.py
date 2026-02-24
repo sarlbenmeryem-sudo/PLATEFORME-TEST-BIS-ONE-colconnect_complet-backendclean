@@ -220,5 +220,21 @@ def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str):
         raise HTTPException(status_code=404, detail="Arbitrage introuvable")
 
     return arbitrage
+from datetime import datetime
 
+@app.get("/api/debug/last-created-at-type/{collectivite_id}")
+def debug_created_at_type(collectivite_id: str):
+    db = get_db()
+    doc = db.arbitrages.find_one(
+        {"collectivite_id": collectivite_id},
+        sort=[("created_at", -1)],
+        projection={"_id": 0, "created_at": 1, "arbitrage_id": 1},
+    )
+    if not doc:
+        raise HTTPException(status_code=404, detail="No arbitrage")
+    return {
+        "arbitrage_id": doc.get("arbitrage_id"),
+        "created_at_value": str(doc.get("created_at")),
+        "python_type": str(type(doc.get("created_at"))),
+    }
 
