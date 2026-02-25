@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional, Any, Dict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.encoders import jsonable_encoder
 from fastapi import Body
 from engine.arbitrage_v2 import calculer_arbitrage_2_0
