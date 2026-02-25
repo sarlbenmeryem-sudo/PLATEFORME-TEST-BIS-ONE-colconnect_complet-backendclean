@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 cat > server.new.py <<'PY'
 from __future__ import annotations
 
@@ -278,3 +279,5 @@ def debug_created_at_type(collectivite_id: str):
 def debug_echo(payload: Dict[str, Any] = Body(...)):
     return {"ok": True, "payload": payload}
 PY
+=======
+>>>>>>> c9d7a9d (Cleanup server: single models, correct routes, JSON-safe responses)
