@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Optional, Any, Dict
 
 from fastapi import FastAPI, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi import Body
 from engine.arbitrage_v2 import calculer_arbitrage_2_0
 from pydantic import BaseModel
@@ -181,8 +182,7 @@ def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
         result["arbitrage_id"] = arbitrage_id
         result["created_at"] = datetime.utcnow()
         db.arbitrages.insert_one(result)
-        return result
-    except Exception as e:
+        return jsonable_encoder(result, custom_encoder={ObjectId: str})    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 # -----------------------------
 # ARBITRAGE - FULL (dernier arbitrage + projets)
@@ -283,3 +283,4 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"error": "internal_server_error", "detail": str(exc)},
     )
+from bson import ObjectId
