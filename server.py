@@ -173,9 +173,10 @@ def get_projets(collectivite_id: str):
 # ARBITRAGE - RUN (création + stockage)
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
-def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
+def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn):
     try:
         db = get_db()
+        payload = payload.model_dump()
         payload["collectivite_id"] = collectivite_id
         result = calculer_arbitrage_2_0(payload)
 
@@ -284,3 +285,35 @@ def _to_json_safe(x):
     if isinstance(x, list):
         return [_to_json_safe(v) for v in x]
     return x
+
+# -----------------------------
+# Pydantic models (API contract)
+# -----------------------------
+from pydantic import BaseModel, Field
+from typing import Literal
+
+class ContraintesIn(BaseModel):
+    budget_investissement_max: float = Field(..., gt=0)
+    seuil_capacite_desendettement_ans: float = Field(..., gt=0)
+
+class HypothesesIn(BaseModel):
+    taux_subventions_moyen: float = Field(..., ge=0, le=1)
+    inflation_travaux: float = Field(..., ge=0)
+    annee_reference: int = Field(..., ge=2000, le=2100)
+    epargne_brute_annuelle: float = Field(..., gt=0)
+    encours_dette_initial: float = Field(..., ge=0)
+
+class ProjetIn(BaseModel):
+    id: str
+    nom: str
+    cout_ttc: float = Field(..., gt=0)
+    priorite: Literal["elevee", "moyenne", "faible"] = "moyenne"
+    impact_climat: Literal["fort", "moyen", "faible"] = "faible"
+    impact_education: Literal["fort", "moyen", "faible"] = "faible"
+    annee_realisation: int
+
+class ArbitrageRunIn(BaseModel):
+    mandat: str
+    contraintes: ContraintesIn
+    hypotheses: HypothesesIn
+    projets: list[ProjetIn]
