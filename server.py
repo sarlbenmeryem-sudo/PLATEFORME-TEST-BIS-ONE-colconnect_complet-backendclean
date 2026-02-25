@@ -245,3 +245,15 @@ def debug_created_at_type(collectivite_id: str):
 @app.post("/api/debug/echo")
 def debug_echo(payload: dict = Body(...)):
     return {"ok": True, "payload": payload}
+
+# -----------------------------
+# GLOBAL ERROR HANDLER (debug temporaire)
+# -----------------------------
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_server_error", "detail": str(exc)},
+    )
