@@ -181,6 +181,11 @@ def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
 
         arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
         result["arbitrage_id"] = arbitrage_id
+        # traçabilité : tag chaque projet avec arbitrage_id
+        if isinstance(result.get("projets"), list):
+            for p in result["projets"]:
+                if isinstance(p, dict):
+                    p["arbitrage_id"] = arbitrage_id
         # tag chaque projet avec arbitrage_id (traçabilité)
         if isinstance(result.get("projets"), list):
             for p in result["projets"]:
@@ -257,42 +262,10 @@ def debug_echo(payload: dict = Body(...)):
     return {"ok": True, "payload": payload}
 
 # -----------------------------
-# GLOBAL ERROR HANDLER (debug temporaire)
-# -----------------------------
-from fastapi.responses import JSONResponse
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    return JSONResponse(
-        status_code=500,
-        content={"error": "internal_server_error", "detail": str(exc)},
-    )
 
 # -----------------------------
-# GLOBAL ERROR HANDLER (debug temporaire)
-# -----------------------------
-from fastapi.responses import JSONResponse
-from starlette.requests import Request
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"error": "internal_server_error", "detail": str(exc)},
-    )
 
 # -----------------------------
-# GLOBAL ERROR HANDLER (debug temporaire)
-# -----------------------------
-from fastapi.responses import JSONResponse
-from starlette.requests import Request
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    return JSONResponse(
-        status_code=500,
-        content={"error": "internal_server_error", "detail": str(exc)},
-    )
 from bson import ObjectId
 
 # -----------------------------
