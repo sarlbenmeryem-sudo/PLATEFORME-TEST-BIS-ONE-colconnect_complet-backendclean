@@ -257,3 +257,16 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"error": "internal_server_error", "detail": str(exc)},
     )
+
+# -----------------------------
+# GLOBAL ERROR HANDLER (debug temporaire)
+# -----------------------------
+from fastapi.responses import JSONResponse
+from starlette.requests import Request
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "internal_server_error", "detail": str(exc)},
+    )
