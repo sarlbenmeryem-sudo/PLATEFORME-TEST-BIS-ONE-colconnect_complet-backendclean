@@ -185,7 +185,7 @@ def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
 
         db.arbitrages.insert_one(result)
 
-        return jsonable_encoder(result, custom_encoder={ObjectId: str})
+        return _to_json_safe(result)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -289,3 +289,20 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"error": "internal_server_error", "detail": str(exc)},
     )
 from bson import ObjectId
+
+# -----------------------------
+# JSON SAFE (ObjectId etc.)
+# -----------------------------
+def _to_json_safe(x):
+    try:
+        from bson import ObjectId as _ObjectId
+    except Exception:
+        _ObjectId = None
+
+    if _ObjectId is not None and isinstance(x, _ObjectId):
+        return str(x)
+    if isinstance(x, dict):
+        return {k: _to_json_safe(v) for k, v in x.items() if k != "_id"}
+    if isinstance(x, list):
+        return [_to_json_safe(v) for v in x]
+    return x
