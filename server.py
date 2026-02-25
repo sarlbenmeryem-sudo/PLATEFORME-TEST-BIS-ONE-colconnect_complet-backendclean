@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
@@ -20,10 +21,17 @@ app = FastAPI()
 
 APP_GIT_COMMIT = os.getenv("RENDER_GIT_COMMIT", "unknown")
 
+DEPLOY_SHA = (Path("DEPLOY_SHA").read_text().strip() if Path("DEPLOY_SHA").exists() else "missing")
+
 
 @app.get("/api/version")
 def version():
     return {"render_git_commit": APP_GIT_COMMIT}
+
+
+@app.get("/api/deploy")
+def deploy():
+    return {"render_git_commit": APP_GIT_COMMIT, "deploy_sha": DEPLOY_SHA}
 
 
 @app.api_route("/", methods=["GET", "HEAD"])
