@@ -178,11 +178,16 @@ def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
         db = get_db()
         payload["collectivite_id"] = collectivite_id
         result = calculer_arbitrage_2_0(payload)
+
         arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
         result["arbitrage_id"] = arbitrage_id
         result["created_at"] = datetime.utcnow()
+
         db.arbitrages.insert_one(result)
-        return jsonable_encoder(result, custom_encoder={ObjectId: str})    except Exception as e:
+
+        return jsonable_encoder(result, custom_encoder={ObjectId: str})
+
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 # -----------------------------
 # ARBITRAGE - FULL (dernier arbitrage + projets)
