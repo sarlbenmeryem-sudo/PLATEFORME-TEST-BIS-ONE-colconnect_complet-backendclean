@@ -187,11 +187,6 @@ def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn):
             for p in result["projets"]:
                 if isinstance(p, dict):
                     p["arbitrage_id"] = arbitrage_id
-        # tag chaque projet avec arbitrage_id (traçabilité)
-        if isinstance(result.get("projets"), list):
-            for p in result["projets"]:
-                if isinstance(p, dict):
-                    p["arbitrage_id"] = arbitrage_id
         result["created_at"] = datetime.utcnow()
 
         db.arbitrages.insert_one(result)
