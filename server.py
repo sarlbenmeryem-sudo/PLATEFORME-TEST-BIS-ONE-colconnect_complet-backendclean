@@ -28,7 +28,9 @@ APP_GIT_COMMIT = os.getenv("RENDER_GIT_COMMIT", "unknown")
 def version():
     return {"render_git_commit": APP_GIT_COMMIT}
 
-
+@app.api_route("/", methods=["GET", "HEAD"])
+def root():
+    return {"status": "ok", "service": "plateforme-colconnect-api"}
 # -----------------------------
 # HEALTH (Render)
 # -----------------------------
