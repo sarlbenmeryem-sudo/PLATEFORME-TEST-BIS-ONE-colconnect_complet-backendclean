@@ -181,7 +181,6 @@ class ArbitrageRunIn(BaseModel):
     hypotheses: HypothesesIn
     projets: list[ProjetIn]
 
-@app.get("/api/collectivites/{collectivite_id}/arbitrage:full")
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
 def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn = Body(...)):
     db = get_db()
@@ -206,7 +205,7 @@ def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn = Body(...)):
         # PyMongo peut injecter _id (ObjectId) dans le dict -> on l'enlève
         result.pop("_id", None)
 
-        return jsonable_encoder(result, custom_encoder={ObjectId: str})
+        return _json_safe(result)
 
     except HTTPException:
         raise
@@ -305,3 +304,15 @@ class ProjetIn(BaseModel):
     impact_education: Literal["fort", "moyen", "faible"] = "faible"
     annee_realisation: int
 
+
+def _json_safe(x):
+    from datetime import datetime as _dt
+    if isinstance(x, ObjectId):
+        return str(x)
+    if isinstance(x, _dt):
+        return x.isoformat()
+    if isinstance(x, dict):
+        return {k: _json_safe(v) for k, v in x.items() if k != "_id"}
+    if isinstance(x, list):
+        return [_json_safe(v) for v in x]
+    return x
