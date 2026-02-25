@@ -1,5 +1,8 @@
 from copy import deepcopy
 
+def r3(x):
+    return round(float(x), 3)
+
 PRIORITE_MAP = {"elevee": 3, "moyenne": 2, "faible": 1}
 IMPACT_MAP = {"fort": 2, "moyen": 1, "faible": 0}
 
@@ -11,6 +14,9 @@ def scorer_projet(p):
 
     score_brut = (wp * priorite) + (wc * impact_climat) + (we * impact_education)
     return min(1.0, score_brut / 3.0)
+
+def r3(x):
+    return round(float(x), 3)
 
 def calculer_arbitrage_2_0(payload: dict) -> dict:
     """
@@ -28,7 +34,7 @@ def calculer_arbitrage_2_0(payload: dict) -> dict:
 
     # 1) scoring
     for p in projets:
-        p["score"] = scorer_projet(p)
+        p["score"] = r3(scorer_projet(p))
 
     # 2) tri score desc
     projets.sort(key=lambda x: x.get("score", 0), reverse=True)
@@ -62,9 +68,9 @@ def calculer_arbitrage_2_0(payload: dict) -> dict:
     epargne = hyp["epargne_brute_annuelle"]
     taux_subv = hyp["taux_subventions_moyen"]
 
-    cd_initial = encours_initial / epargne
+    cd_initial = r3(encours_initial / epargne)
     encours_proj = encours_initial + cout_retenu * (1 - taux_subv)
-    cd_proj = encours_proj / epargne
+    cd_proj = r3(encours_proj / epargne)
 
     respect_seuil = cd_proj <= contraintes["seuil_capacite_desendettement_ans"]
 
@@ -88,7 +94,7 @@ def calculer_arbitrage_2_0(payload: dict) -> dict:
 
     data["status"] = {
         "state": "done",
-        "score_global": min(1.0, max(0.0, 1 - (cd_proj / contraintes["seuil_capacite_desendettement_ans"]))),
+        "score_global": r3(min(1.0, max(0.0, 1 - (cd_proj / contraintes["seuil_capacite_desendettement_ans"])))),
         "respect_contraintes": respect_seuil,
     }
 
