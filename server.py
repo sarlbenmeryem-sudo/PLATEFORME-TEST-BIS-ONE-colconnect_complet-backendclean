@@ -18,7 +18,7 @@ from pymongo.errors import PyMongoError
 MONGO_URI = os.getenv("MONGO_URI", "").strip()
 DB_NAME = os.getenv("DB_NAME", "colconnect").strip()
 
-app = FastAPI()
+app = FastAPI()   
 
 # -----------------------------
 # VERSION ENDPOINT (debug deploy)
