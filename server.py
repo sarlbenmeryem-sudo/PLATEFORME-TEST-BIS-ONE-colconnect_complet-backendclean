@@ -1,3 +1,4 @@
+cat > server.new.py <<'PY'
 from __future__ import annotations
 
 import os
@@ -129,19 +130,6 @@ class ArbitrageRunIn(BaseModel):
     contraintes: ContraintesIn
     hypotheses: HypothesesIn
     projets: List[ProjetIn]
-
-
-# -----------------------------
-# (Optionnel) MODELS - OUTPUT (non bloquant)
-# -----------------------------
-class ArbitrageSynthese(BaseModel):
-    nb_projets_total: int
-    nb_keep: int
-    nb_defer: int
-    nb_drop: int
-    investissement_mandat: Dict[str, Any]
-    impact_capacite_desendettement: Dict[str, Any]
-    commentaire_politique: Optional[str] = None
 
 
 # -----------------------------
@@ -289,3 +277,4 @@ def debug_created_at_type(collectivite_id: str):
 @app.post("/api/debug/echo")
 def debug_echo(payload: Dict[str, Any] = Body(...)):
     return {"ok": True, "payload": payload}
+PY
