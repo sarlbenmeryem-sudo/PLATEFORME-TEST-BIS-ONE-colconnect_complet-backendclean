@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional, Any, Dict
 
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI, HTTPException, Body, Body
 from fastapi.encoders import jsonable_encoder
 from fastapi import Body
 from engine.arbitrage_v2 import calculer_arbitrage_2_0
@@ -150,6 +150,7 @@ def test_mongo():
 def import_projets(collectivite_id: str, projets: List[Dict[str, Any]]):
     db = get_db()
 
+        payload = ArbitrageRunIn.model_validate(payload).model_dump()
     # Supprime les anciens projets de cette collectivité
     db.projets.delete_many({"collectivite_id": collectivite_id})
 
@@ -174,10 +175,10 @@ def get_projets(collectivite_id: str):
 # ARBITRAGE - RUN (création + stockage)
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
-def run_arbitrage(collectivite_id: str, payload: "ArbitrageRunIn"):
+def run_arbitrage(collectivite_id: str, payload: dict = Body(...)):
     try:
         db = get_db()
-        payload = payload.model_dump()
+        payload = ArbitrageRunIn.model_validate(payload).model_dump()
         payload["collectivite_id"] = collectivite_id
         result = calculer_arbitrage_2_0(payload)
 
