@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import uuid
 from datetime import datetime
@@ -173,7 +174,7 @@ def get_projets(collectivite_id: str):
 # ARBITRAGE - RUN (création + stockage)
 # -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
-def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn):
+def run_arbitrage(collectivite_id: str, payload: "ArbitrageRunIn"):
     try:
         db = get_db()
         payload = payload.model_dump()
