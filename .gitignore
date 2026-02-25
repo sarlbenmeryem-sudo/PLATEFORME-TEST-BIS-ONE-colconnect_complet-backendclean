@@ -15,3 +15,6 @@ payload.json
 
 __pycache__/
 payload_budget.json
+
+__pycache__/
+*.pyc
