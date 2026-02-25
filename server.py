@@ -213,6 +213,7 @@ def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn = Body(...)):
         raise HTTPException(status_code=500, detail=f"Mongo error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Unexpected error: {e}")
+@app.get("/api/collectivites/{collectivite_id}/arbitrage:full")
 def get_last_arbitrage(collectivite_id: str):
     db = get_db()
 
