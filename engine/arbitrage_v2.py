@@ -18,6 +18,13 @@ def scorer_projet(p):
 def r3(x):
     return round(float(x), 3)
 
+def _r(x, n=2):
+    try:
+        return round(float(x), n)
+    except Exception:
+        return x
+
+
 def calculer_arbitrage_2_0(payload: dict) -> dict:
     """
     V2.1
@@ -86,8 +93,8 @@ def calculer_arbitrage_2_0(payload: dict) -> dict:
             "economies_realisees": cout_total_initial - cout_retenu,
         },
         "impact_capacite_desendettement": {
-            "capacite_initiale_annees": cd_initial,
-            "capacite_proj_annees": cd_proj,
+            "capacite_initiale_annees": _r(cd_initial, 2),
+            "capacite_proj_annees": _r(cd_proj, 2),
             "respect_seuil": respect_seuil,
         },
     }
