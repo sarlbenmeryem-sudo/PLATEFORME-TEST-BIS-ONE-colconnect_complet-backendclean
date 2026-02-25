@@ -6,3 +6,6 @@ requirements.txt.bak.*
 requirements.txt.bak.*
 *.bak.*
 server_backup.py
+
+__pycache__/
+payload.json
