@@ -13,17 +13,11 @@ from pymongo.errors import PyMongoError
 
 from engine.arbitrage_v2 import calculer_arbitrage_2_0
 
-# -----------------------------
-# CONFIG
-# -----------------------------
 MONGO_URI = os.getenv("MONGO_URI", "").strip()
 DB_NAME = os.getenv("DB_NAME", "colconnect").strip()
 
 app = FastAPI()
 
-# -----------------------------
-# VERSION
-# -----------------------------
 APP_GIT_COMMIT = os.getenv("RENDER_GIT_COMMIT", "unknown")
 
 
@@ -32,9 +26,6 @@ def version():
     return {"render_git_commit": APP_GIT_COMMIT}
 
 
-# -----------------------------
-# ROOT + HEALTH (Render peut envoyer HEAD /)
-# -----------------------------
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok", "service": "plateforme-colconnect-api"}
@@ -45,9 +36,6 @@ def health():
     return {"status": "ok"}
 
 
-# -----------------------------
-# MONGO (lazy init)
-# -----------------------------
 mongo_client: Optional[MongoClient] = None
 
 
@@ -78,9 +66,6 @@ def shutdown_event():
         mongo_client = None
 
 
-# -----------------------------
-# JSON SAFE (ObjectId + datetime + remove _id)
-# -----------------------------
 def _json_safe(x: Any) -> Any:
     if isinstance(x, ObjectId):
         return str(x)
@@ -93,9 +78,6 @@ def _json_safe(x: Any) -> Any:
     return x
 
 
-# -----------------------------
-# INPUT MODELS
-# -----------------------------
 class ContraintesIn(BaseModel):
     budget_investissement_max: float = Field(..., gt=0)
     seuil_capacite_desendettement_ans: float = Field(..., gt=0)
@@ -126,9 +108,6 @@ class ArbitrageRunIn(BaseModel):
     projets: List[ProjetIn]
 
 
-# -----------------------------
-# TEST MONGO
-# -----------------------------
 @app.get("/api/test-mongo")
 def test_mongo():
     if not MONGO_URI:
@@ -140,19 +119,14 @@ def test_mongo():
         return {"status": "error", "mongo": "connection_failed", "detail": e.detail}
 
 
-# -----------------------------
-# PROJETS
-# -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/projets:import")
 def import_projets(collectivite_id: str, projets: List[Dict[str, Any]] = Body(...)):
     db = get_db()
     db.projets.delete_many({"collectivite_id": collectivite_id})
-
     if projets:
         for p in projets:
             p["collectivite_id"] = collectivite_id
         db.projets.insert_many(projets)
-
     return {"status": "ok", "count": len(projets)}
 
 
@@ -163,9 +137,6 @@ def get_projets(collectivite_id: str):
     return _json_safe(projets)
 
 
-# -----------------------------
-# ARBITRAGE
-# -----------------------------
 @app.post("/api/collectivites/{collectivite_id}/arbitrage:run")
 def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn = Body(...)):
     db = get_db()
@@ -187,9 +158,7 @@ def run_arbitrage(collectivite_id: str, payload: ArbitrageRunIn = Body(...)):
         result["created_at"] = datetime.utcnow()
         db.arbitrages.insert_one(result)
         result.pop("_id", None)
-
         return _json_safe(result)
-
     except HTTPException:
         raise
     except PyMongoError as e:
@@ -208,7 +177,6 @@ def get_last_arbitrage(collectivite_id: str):
     )
     if not arbitrage:
         raise HTTPException(status_code=404, detail="Aucun arbitrage trouvé pour cette collectivité")
-
     projets = list(db.projets.find({"collectivite_id": collectivite_id}, {"_id": 0}))
     arbitrage["projets"] = projets
     return _json_safe(arbitrage)
@@ -226,9 +194,6 @@ def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str):
     return _json_safe(arbitrage)
 
 
-# -----------------------------
-# DEBUG
-# -----------------------------
 @app.get("/api/debug/last-created-at-type/{collectivite_id}")
 def debug_created_at_type(collectivite_id: str):
     db = get_db()
