@@ -14,5 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app
 
-# Par défaut: no-op (à remplacer par `python -m engine.runner` plus tard)
 CMD ["python", "-c", "print('engine container ready')"]
