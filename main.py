@@ -9,7 +9,11 @@ app = FastAPI(title="ColConnect API", version="1.0.0")
 
 @app.on_event("startup")
 def startup_event():
-    ensure_indexes()
+    try:
+        ensure_indexes()
+    except Exception:
+        # On ne bloque jamais le démarrage pour un sujet d'index
+        pass
 
 
 app.include_router(system_router)
