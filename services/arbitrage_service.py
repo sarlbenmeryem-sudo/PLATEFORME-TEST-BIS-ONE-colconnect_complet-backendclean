@@ -423,3 +423,84 @@ def list_arbitrages_cursor(collectivite_id: str, limit: int = 10, cursor: str | 
         "next_cursor": next_cursor,
         "items": items,
     }
+
+
+# --- Override robuste cursor pagination (support docs legacy sans created_at_dt) ---
+def list_arbitrages_cursor(collectivite_id: str, limit: int = 10, cursor: str | None = None):
+    """
+    Pagination par curseur, robuste sur historique hétérogène.
+    Tri: (created_at_dt DESC) fallback (created_at DESC) puis arbitrage_id DESC.
+    Curseur: timestamp ISO + arbitrage_id.
+    """
+    if limit < 1:
+        limit = 1
+    if limit > 50:
+        limit = 50
+
+    db = get_db()
+    filt = {"collectivite_id": collectivite_id, "engine_version": ENGINE_VERSION}
+
+    # decode cursor -> {"ts": "...", "arbitrage_id": "..."}
+    if cursor:
+        data = _decode_cursor(cursor)
+        ts = data.get("created_at_dt") or data.get("ts") or data.get("created_at")  # compat
+        arb_id = data.get("arbitrage_id")
+
+        # On filtre "strictly older"
+        # Note: created_at_dt peut être absent -> on s'appuie sur created_at string ISO.
+        filt["$or"] = [
+            {"created_at_dt": {"$lt": ts}},
+            {"created_at_dt": {"$exists": False}, "created_at": {"$lt": ts}},
+            {"created_at_dt": ts, "arbitrage_id": {"$lt": arb_id}},
+            {"created_at_dt": {"$exists": False}, "created_at": ts, "arbitrage_id": {"$lt": arb_id}},
+        ]
+
+    # On trie en priorité par created_at_dt, sinon created_at
+    cursor_db = (
+        db.arbitrages.find(filt, projection={"_id": 0})
+        .sort([("created_at_dt", -1), ("created_at", -1), ("arbitrage_id", -1)])
+        .limit(limit + 1)
+    )
+
+    docs = list(cursor_db)
+    has_next = len(docs) > limit
+    docs = docs[:limit]
+
+    items = []
+    next_cursor = None
+
+    for doc in docs:
+        out = _to_api_out(doc)
+        items.append(
+            {
+                "arbitrage_id": out["arbitrage_id"],
+                "collectivite_id": out["collectivite_id"],
+                "mandat": out["mandat"],
+                "synthese": out["synthese"],
+                "audit": out["audit"],
+            }
+        )
+
+    if has_next and docs:
+        last = docs[-1]
+
+        # curseur timestamp: created_at_dt (datetime) -> iso ; sinon created_at (string) -> used
+        ts = None
+        if isinstance(last.get("created_at_dt"), datetime):
+            ts = last["created_at_dt"].isoformat()
+        elif isinstance(last.get("created_at_dt"), str):
+            ts = last["created_at_dt"]
+        elif isinstance(last.get("created_at"), str):
+            ts = last["created_at"]
+        else:
+            ts = "1970-01-01T00:00:00Z"
+
+        payload = {"created_at_dt": ts, "arbitrage_id": last.get("arbitrage_id", "")}
+        raw = json.dumps(payload).encode()
+        next_cursor = base64.urlsafe_b64encode(raw).decode()
+
+    return {
+        "limit": limit,
+        "next_cursor": next_cursor,
+        "items": items,
+    }
