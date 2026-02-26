@@ -26,7 +26,7 @@ DEPLOY_SHA = (Path("DEPLOY_SHA").read_text().strip() if Path("DEPLOY_SHA").exist
 
 @app.get("/api/version")
 def version():
-    return {"render_git_commit": APP_GIT_COMMIT}
+    return {"render_git_commit": APP_GIT_COMMIT, "deploy_sha": DEPLOY_SHA}
 
 
 @app.get("/api/deploy")
