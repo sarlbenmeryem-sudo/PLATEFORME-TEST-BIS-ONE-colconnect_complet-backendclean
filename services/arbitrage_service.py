@@ -207,7 +207,7 @@ def get_last_arbitrage_out(collectivite_id: str) -> Dict[str, Any]:
     """
     db = get_db()
     cursor = db.arbitrages.find(
-        {"collectivite_id": collectivite_id},
+        {"collectivite_id": collectivite_id, "engine_version": "2.0.0"},
         projection={"_id": 0},
     ).sort([("created_at_dt", -1), ("created_at", -1)]).limit(20)
 
