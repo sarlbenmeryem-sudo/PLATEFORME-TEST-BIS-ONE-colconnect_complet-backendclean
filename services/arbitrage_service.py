@@ -271,3 +271,32 @@ def get_settings(collectivite_id: str) -> Dict[str, Any]:
             "poids_financier": 0.3,
         }
     return doc
+
+def get_settings(collectivite_id: str) -> Dict[str, Any]:
+    db = get_db()
+    doc = db.collectivites_settings.find_one(
+        {"collectivite_id": collectivite_id},
+        projection={"_id": 0},
+    )
+    if not doc:
+        return {
+            "collectivite_id": collectivite_id,
+            "poids_climat": 0.4,
+            "poids_education": 0.3,
+            "poids_financier": 0.3,
+        }
+    return doc
+
+def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str) -> Dict[str, Any]:
+    db = get_db()
+    doc = db.arbitrages.find_one(
+        {
+            "collectivite_id": collectivite_id,
+            "arbitrage_id": arbitrage_id,
+        },
+        projection={"_id": 0},
+    )
+    if not doc:
+        raise KeyError("Arbitrage introuvable")
+
+    return _to_api_out(doc)

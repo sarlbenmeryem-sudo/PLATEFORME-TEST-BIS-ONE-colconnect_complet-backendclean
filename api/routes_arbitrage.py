@@ -80,3 +80,12 @@ def get_collectivite_settings(collectivite_id: str):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}", response_model=ArbitrageRunOut)
+def get_arbitrage_by_id_route(collectivite_id: str, arbitrage_id: str):
+    try:
+        return get_arbitrage_by_id(collectivite_id, arbitrage_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
