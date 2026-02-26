@@ -143,12 +143,25 @@ def run_arbitrage(
 
 def get_last_arbitrage(collectivite_id: str) -> Dict[str, Any]:
     db = get_db()
-    doc = db.arbitrages.find_one(
+
+    # On parcourt les docs les plus récents et on normalise.
+    # But: être robuste si l'historique contient des formats hétérogènes (audit manquant, dates mixtes).
+    cursor = db.arbitrages.find(
         {"collectivite_id": collectivite_id},
-        sort=[("created_at_dt", -1), ("created_at", -1)],
         projection={"_id": 0},
-    )
-    if not doc:
+    ).sort([("created_at_dt", -1), ("created_at", -1)]).limit(20)
+
+    last = None
+    for doc in cursor:
+        last = doc
+        try:
+            return _normalize_arbitrage_doc(doc)
+        except Exception:
+            # si un doc est vraiment corrompu, on tente le suivant
+            continue
+
+    if not last:
         raise KeyError("Aucun arbitrage trouvé pour cette collectivité")
 
-    return _normalize_arbitrage_doc(doc)
+    # fallback ultime: normalise ce qu'on a
+    return _normalize_arbitrage_doc(last)
