@@ -18,3 +18,11 @@ payload_budget.json
 
 __pycache__/
 *.pyc
+
+# local secrets / env
+jwt_secret
+jwt_secret.txt
+.jwt_secret
+.env
+.venv/
+__pycache__/
