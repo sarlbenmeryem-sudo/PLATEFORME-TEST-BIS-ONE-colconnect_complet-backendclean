@@ -1,108 +1,94 @@
-from copy import deepcopy
+from __future__ import annotations
 
-def r3(x):
-    return round(float(x), 3)
-
-PRIORITE_MAP = {"elevee": 3, "moyenne": 2, "faible": 1}
-IMPACT_MAP = {"fort": 2, "moyen": 1, "faible": 0}
-
-def scorer_projet(p):
-    wp, wc, we = 0.4, 0.3, 0.3
-    priorite = PRIORITE_MAP.get(p.get("priorite"), 1)
-    impact_climat = IMPACT_MAP.get(p.get("impact_climat"), 0)
-    impact_education = IMPACT_MAP.get(p.get("impact_education"), 0)
-
-    score_brut = (wp * priorite) + (wc * impact_climat) + (we * impact_education)
-    return min(1.0, score_brut / 3.0)
-
-def r3(x):
-    return round(float(x), 3)
-
-def _r(x, n=2):
-    try:
-        return round(float(x), n)
-    except Exception:
-        return x
+from typing import Any, Dict, List
 
 
-def calculer_arbitrage_2_0(payload: dict) -> dict:
+ENGINE_VERSION = "2.0.0"
+
+
+def _map_level(level: str) -> float:
+    # Normalise vers [0, 1]
+    return {"faible": 0.2, "moyen": 0.6, "fort": 1.0}.get(level, 0.0)
+
+
+def _map_priorite(p: str) -> float:
+    return {"faible": 0.2, "moyenne": 0.6, "elevee": 1.0}.get(p, 0.0)
+
+
+def calculer_arbitrage_2_0(payload: Dict[str, Any], weights: Dict[str, float]) -> Dict[str, Any]:
     """
-    V2.1
-    - score 0..1
-    - tri projets par score décroissant
-    - décisions keep/defer/drop
-    - ajustement budget : drop d'abord defer (moins bons), puis keep (moins bons) si nécessaire
+    Calcul pur (sans FastAPI/Mongo).
+    payload: dict (mandat, contraintes, hypotheses, projets...)
+    weights: {"poids_climat":..., "poids_education":..., "poids_financier":...}
     """
-    data = deepcopy(payload)
+    contraintes = payload["contraintes"]
+    budget_max = float(contraintes["budget_investissement_max"])
 
-    projets = data["projets"]
-    contraintes = data["contraintes"]
-    hyp = data["hypotheses"]
+    w_climat = float(weights.get("poids_climat", 0.4))
+    w_edu = float(weights.get("poids_education", 0.3))
+    w_fin = float(weights.get("poids_financier", 0.3))
 
-    # 1) scoring
-    for p in projets:
-        p["score"] = r3(scorer_projet(p))
+    projets_in: List[Dict[str, Any]] = list(payload.get("projets", []))
 
-    # 2) tri score desc
-    projets.sort(key=lambda x: x.get("score", 0), reverse=True)
+    scored: List[Dict[str, Any]] = []
+    for p in projets_in:
+        cout = float(p["cout_ttc"])
 
-    # 3) décisions initiales
-    for p in projets:
-        if p["score"] >= 0.7:
-            p["decision"] = "keep"
-        elif p["score"] >= 0.4:
-            p["decision"] = "defer"
+        score_climat = _map_level(p["impact_climat"])
+        score_edu = _map_level(p["impact_education"])
+        score_prio = _map_priorite(p["priorite"])
+
+        # Score financier simple (plus c'est cher, moins bon), borné
+        # (évite les divisions par 0)
+        score_fin = 1.0 / (1.0 + (cout / max(budget_max, 1.0)))
+
+        score = (
+            w_climat * score_climat
+            + w_edu * score_edu
+            + w_fin * (0.6 * score_fin + 0.4 * score_prio)
+        )
+
+        scored.append(
+            {
+                "id": p["id"],
+                "nom": p["nom"],
+                "cout_ttc": cout,
+                "annee_realisation": int(p["annee_realisation"]),
+                "score": float(round(score, 6)),
+                "details_score": {
+                    "score_climat": score_climat,
+                    "score_education": score_edu,
+                    "score_financier": score_fin,
+                    "score_priorite": score_prio,
+                    "poids": {"climat": w_climat, "education": w_edu, "financier": w_fin},
+                },
+            }
+        )
+
+    # Tri score desc, puis coût asc
+    scored.sort(key=lambda x: (-x["score"], x["cout_ttc"]))
+
+    budget_retenu = 0.0
+    projets_out: List[Dict[str, Any]] = []
+    for p in scored:
+        if budget_retenu + p["cout_ttc"] <= budget_max:
+            retenu = True
+            budget_retenu += p["cout_ttc"]
         else:
-            p["decision"] = "drop"
+            retenu = False
+        projets_out.append({**p, "retenu": retenu})
 
-    # 4) totaux
-    cout_total_initial = sum(p["cout_ttc"] for p in projets)
-    cout_retenu = sum(p["cout_ttc"] for p in projets if p["decision"] in ["keep", "defer"])
-
-    # 5) ajustement budget
-    budget_max = contraintes["budget_investissement_max"]
-    if cout_retenu > budget_max:
-        defer = sorted([p for p in projets if p["decision"] == "defer"], key=lambda x: x["score"])
-        keep = sorted([p for p in projets if p["decision"] == "keep"], key=lambda x: x["score"])
-        for p in (defer + keep):
-            if cout_retenu <= budget_max:
-                break
-            p["decision"] = "drop"
-            cout_retenu -= p["cout_ttc"]
-
-    # 6) capacité de désendettement
-    encours_initial = hyp["encours_dette_initial"]
-    epargne = hyp["epargne_brute_annuelle"]
-    taux_subv = hyp["taux_subventions_moyen"]
-
-    cd_initial = r3(encours_initial / epargne)
-    encours_proj = encours_initial + cout_retenu * (1 - taux_subv)
-    cd_proj = r3(encours_proj / epargne)
-
-    respect_seuil = cd_proj <= contraintes["seuil_capacite_desendettement_ans"]
-
-    # 7) synthese
-    data["synthese"] = {
-        "nb_projets_total": len(projets),
-        "nb_keep": sum(1 for p in projets if p["decision"] == "keep"),
-        "nb_defer": sum(1 for p in projets if p["decision"] == "defer"),
-        "nb_drop": sum(1 for p in projets if p["decision"] == "drop"),
-        "investissement_mandat": {
-            "cout_total_ttc_initial": cout_total_initial,
-            "cout_total_ttc_retenu": cout_retenu,
-            "economies_realisees": cout_total_initial - cout_retenu,
-        },
-        "impact_capacite_desendettement": {
-            "capacite_initiale_annees": _r(cd_initial, 2),
-            "capacite_proj_annees": _r(cd_proj, 2),
-            "respect_seuil": respect_seuil,
-        },
+    synthese = {
+        "budget_max": float(round(budget_max, 2)),
+        "budget_retenu": float(round(budget_retenu, 2)),
+        "budget_restant": float(round(budget_max - budget_retenu, 2)),
+        "nb_projets_total": len(projets_out),
+        "nb_projets_retenus": sum(1 for p in projets_out if p["retenu"]),
     }
 
-    data["status"] = {
-        "state": "done",
-        "score_global": r3(min(1.0, max(0.0, 1 - (cd_proj / contraintes["seuil_capacite_desendettement_ans"])))),
-        "respect_contraintes": respect_seuil,
+    return {
+        "mandat": payload["mandat"],
+        "synthese": synthese,
+        "projets": projets_out,
+        "engine_version": ENGINE_VERSION,
     }
-
-    return data
