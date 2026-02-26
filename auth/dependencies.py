@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 
 security = HTTPBearer(auto_error=True)
 
-JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret")
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret").strip()
 JWT_ALGO = os.getenv("JWT_ALGO", "HS256")
 
 
