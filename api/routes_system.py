@@ -51,3 +51,16 @@ def version_legacy():
         "engine_version": ENGINE_VERSION,
         "schema_version": "1.0.0",
     }
+
+import hashlib
+
+@router.get("/debug/jwt-hash")
+def debug_jwt_hash():
+    s = os.getenv("JWT_SECRET", "")
+    s2 = s.strip()
+    return {
+        "len_raw": len(s),
+        "len_stripped": len(s2),
+        "sha256_stripped": hashlib.sha256(s2.encode("utf-8")).hexdigest(),
+        "jwt_algo": os.getenv("JWT_ALGO", "HS256"),
+    }
