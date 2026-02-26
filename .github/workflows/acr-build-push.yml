@@ -1,0 +1,52 @@
+name: Build & Push to ACR
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set tags
+        id: tags
+        run: |
+          SHA="${GITHUB_SHA::7}"
+          echo "sha_tag=sha-${SHA}" >> $GITHUB_OUTPUT
+          echo "latest_tag=latest" >> $GITHUB_OUTPUT
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: ACR login
+        run: |
+          az acr login --name "${{ secrets.ACR_NAME }}"
+
+      - name: Build & push API
+        run: |
+          ACR="${{ secrets.ACR_NAME }}.azurecr.io"
+          docker build -f Dockerfile.api -t "$ACR/colconnect-api:${{ steps.tags.outputs.sha_tag }}" -t "$ACR/colconnect-api:${{ steps.tags.outputs.latest_tag }}" .
+          docker push "$ACR/colconnect-api:${{ steps.tags.outputs.sha_tag }}"
+          docker push "$ACR/colconnect-api:${{ steps.tags.outputs.latest_tag }}"
+
+      - name: Build & push FRONT
+        run: |
+          ACR="${{ secrets.ACR_NAME }}.azurecr.io"
+          docker build -f Dockerfile.front -t "$ACR/colconnect-front:${{ steps.tags.outputs.sha_tag }}" -t "$ACR/colconnect-front:${{ steps.tags.outputs.latest_tag }}" .
+          docker push "$ACR/colconnect-front:${{ steps.tags.outputs.sha_tag }}"
+          docker push "$ACR/colconnect-front:${{ steps.tags.outputs.latest_tag }}"
+
+      - name: Build & push ENGINE
+        run: |
+          ACR="${{ secrets.ACR_NAME }}.azurecr.io"
+          docker build -f Dockerfile.engine -t "$ACR/colconnect-engine:${{ steps.tags.outputs.sha_tag }}" -t "$ACR/colconnect-engine:${{ steps.tags.outputs.latest_tag }}" .
+          docker push "$ACR/colconnect-engine:${{ steps.tags.outputs.sha_tag }}"
+          docker push "$ACR/colconnect-engine:${{ steps.tags.outputs.latest_tag }}"

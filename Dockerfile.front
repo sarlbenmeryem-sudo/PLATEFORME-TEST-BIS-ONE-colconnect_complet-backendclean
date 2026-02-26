@@ -1,0 +1,11 @@
+FROM nginx:1.27-alpine
+
+# Variables d'upstream API (VMSS internal)
+ENV API_UPSTREAM_HOST=127.0.0.1
+ENV API_UPSTREAM_PORT=8000
+
+COPY deploy/nginx/nginx.conf /etc/nginx/nginx.conf
+
+# Placeholder front (à remplacer par build React/Vue plus tard)
+RUN mkdir -p /usr/share/nginx/html
+COPY deploy/front/index.html /usr/share/nginx/html/index.html

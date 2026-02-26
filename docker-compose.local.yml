@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      - MONGO_URI=${MONGO_URI:-}
+      - JWT_SECRET=${JWT_SECRET:-dev-secret}
+    ports:
+      - "8000:8000"
+
+  front:
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+    environment:
+      - API_UPSTREAM_HOST=api
+      - API_UPSTREAM_PORT=8000
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
