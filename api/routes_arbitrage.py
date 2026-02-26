@@ -70,3 +70,13 @@ def get_collectivite_settings(collectivite_id: str):
         return {"collectivite_id": collectivite_id, "settings": get_settings(collectivite_id)}
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
+
+@router.get("/collectivites/{collectivite_id}/settings")
+def get_collectivite_settings(collectivite_id: str):
+    try:
+        return {
+            "collectivite_id": collectivite_id,
+            "settings": get_settings(collectivite_id),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
