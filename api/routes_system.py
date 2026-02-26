@@ -1,16 +1,12 @@
 from fastapi import APIRouter
 import os
-
 from engine.arbitrage_v2 import ENGINE_VERSION
 
-# Router principal (v1)
 router = APIRouter(prefix="/api/v1", tags=["system"])
-
 
 @router.get("/health")
 def health():
     return {"ok": True}
-
 
 @router.get("/version")
 def version():
@@ -22,21 +18,12 @@ def version():
     }
 
 
-# --- Legacy minimal (optionnel) ---
-legacy_root = APIRouter(tags=["legacy"])
-legacy_api = APIRouter(prefix="/api", tags=["legacy"])
-
-
-@legacy_root.get("/health")
-def health_root():
-    return {"ok": True}
-
-
-@legacy_api.get("/version")
-def version_legacy():
+@router.get("/debug/jwt")
+def debug_jwt():
+    s = os.getenv("JWT_SECRET", "")
+    a = os.getenv("JWT_ALGO", "HS256")
     return {
-        "render_git_commit": os.getenv("RENDER_GIT_COMMIT", "unknown"),
-        "api_version": "v1",
-        "engine_version": ENGINE_VERSION,
-        "schema_version": "1.0.0",
+        "has_jwt_secret": bool(s),
+        "jwt_secret_len": len(s),
+        "jwt_algo": a,
     }
