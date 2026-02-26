@@ -300,3 +300,54 @@ def get_arbitrage_by_id(collectivite_id: str, arbitrage_id: str) -> Dict[str, An
         raise KeyError("Arbitrage introuvable")
 
     return _to_api_out(doc)
+
+
+def list_arbitrages(collectivite_id: str, page: int = 1, limit: int = 10) -> Dict[str, Any]:
+    """
+    Pagination des arbitrages (engine v2 uniquement), tri du plus récent au plus ancien.
+    Retourne un format compatible ArbitrageListOut.
+    """
+    if page < 1:
+        page = 1
+    if limit < 1:
+        limit = 1
+    if limit > 50:
+        limit = 50
+
+    db = get_db()
+    filt = {"collectivite_id": collectivite_id, "engine_version": ENGINE_VERSION}
+
+    total = db.arbitrages.count_documents(filt)
+    skip = (page - 1) * limit
+
+    cursor = (
+        db.arbitrages.find(filt, projection={"_id": 0})
+        .sort([("created_at_dt", -1), ("created_at", -1)])
+        .skip(skip)
+        .limit(limit + 1)
+    )
+
+    docs = list(cursor)
+    has_next = len(docs) > limit
+    docs = docs[:limit]
+
+    items = []
+    for doc in docs:
+        out = _to_api_out(doc)
+        items.append(
+            {
+                "arbitrage_id": out["arbitrage_id"],
+                "collectivite_id": out["collectivite_id"],
+                "mandat": out["mandat"],
+                "synthese": out["synthese"],
+                "audit": out["audit"],
+            }
+        )
+
+    return {
+        "page": page,
+        "limit": limit,
+        "total": int(total),
+        "has_next": bool(has_next),
+        "items": items,
+    }

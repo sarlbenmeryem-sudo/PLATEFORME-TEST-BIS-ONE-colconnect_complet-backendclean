@@ -1,12 +1,19 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Query
 from pydantic import ValidationError
 
-from schemas.arbitrage import ArbitrageRunIn, ArbitrageRunOut, CollectiviteSettings
+from schemas.arbitrage import (
+    ArbitrageRunIn,
+    ArbitrageRunOut,
+    CollectiviteSettings,
+    ArbitrageListOut,
+)
 from services.arbitrage_service import (
     run_arbitrage,
     get_last_arbitrage_out,
     upsert_settings,
     get_settings,
+    get_arbitrage_by_id,
+    list_arbitrages,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["arbitrage"])
@@ -36,8 +43,6 @@ def post_arbitrage_run(
         }
     except ValidationError as e:
         _err(422, "VALIDATION_ERROR", str(e))
-    except RuntimeError as e:
-        _err(500, "RUNTIME_ERROR", str(e))
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
 
@@ -45,10 +50,31 @@ def post_arbitrage_run(
 @router.get("/collectivites/{collectivite_id}/arbitrage:last", response_model=ArbitrageRunOut)
 def get_arbitrage_last(collectivite_id: str):
     try:
-        out = get_last_arbitrage_out(collectivite_id)
-        return out
+        return get_last_arbitrage_out(collectivite_id)
     except KeyError as e:
         _err(404, "NOT_FOUND", str(e))
+    except Exception as e:
+        _err(500, "INTERNAL_ERROR", str(e))
+
+
+@router.get("/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}", response_model=ArbitrageRunOut)
+def get_arbitrage_by_id_route(collectivite_id: str, arbitrage_id: str):
+    try:
+        return get_arbitrage_by_id(collectivite_id, arbitrage_id)
+    except KeyError as e:
+        _err(404, "NOT_FOUND", str(e))
+    except Exception as e:
+        _err(500, "INTERNAL_ERROR", str(e))
+
+
+@router.get("/collectivites/{collectivite_id}/arbitrages", response_model=ArbitrageListOut)
+def get_arbitrages_paginated(
+    collectivite_id: str,
+    page: int = Query(default=1, ge=1),
+    limit: int = Query(default=10, ge=1, le=50),
+):
+    try:
+        return list_arbitrages(collectivite_id, page=page, limit=limit)
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
 
@@ -70,22 +96,3 @@ def get_collectivite_settings(collectivite_id: str):
         return {"collectivite_id": collectivite_id, "settings": get_settings(collectivite_id)}
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
-
-@router.get("/collectivites/{collectivite_id}/settings")
-def get_collectivite_settings(collectivite_id: str):
-    try:
-        return {
-            "collectivite_id": collectivite_id,
-            "settings": get_settings(collectivite_id),
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}", response_model=ArbitrageRunOut)
-def get_arbitrage_by_id_route(collectivite_id: str, arbitrage_id: str):
-    try:
-        return get_arbitrage_by_id(collectivite_id, arbitrage_id)
-    except KeyError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

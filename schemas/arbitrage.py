@@ -87,3 +87,21 @@ class ArbitrageRunOut(BaseModel):
     synthese: ArbitrageSynthese
     projets: List[ProjetOut]
     audit: AuditTrail
+
+
+class ArbitrageListItem(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    arbitrage_id: str
+    collectivite_id: str
+    mandat: str
+    synthese: ArbitrageSynthese
+    audit: AuditTrail
+
+
+class ArbitrageListOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    page: int
+    limit: int
+    total: int
+    has_next: bool
+    items: List[ArbitrageListItem]
