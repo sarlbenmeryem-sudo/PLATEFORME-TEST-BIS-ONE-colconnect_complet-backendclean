@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import ValidationError
 
+from auth.dependencies import require_collectivite_access, require_scope
 from schemas.arbitrage import (
     ArbitrageRunIn,
     ArbitrageRunOut,
@@ -25,15 +26,19 @@ def _err(status: int, code: str, message: str):
     raise HTTPException(status_code=status, detail={"code": code, "message": message})
 
 
-@router.post("/collectivites/{collectivite_id}/arbitrage:run", response_model=ArbitrageRunOut)
+@router.post(
+    "/collectivites/{collectivite_id}/arbitrage:run",
+    response_model=ArbitrageRunOut,
+)
 def post_arbitrage_run(
     collectivite_id: str,
     payload: ArbitrageRunIn,
-    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
+    user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("arbitrage:write")),
 ):
-    triggered_by = x_user_id or "anonymous"
     try:
         data = payload.model_dump()
+        triggered_by = user.get("sub", "unknown")
         out = run_arbitrage(collectivite_id, data, triggered_by=triggered_by)
         return {
             "arbitrage_id": out["arbitrage_id"],
@@ -49,8 +54,15 @@ def post_arbitrage_run(
         _err(500, "INTERNAL_ERROR", str(e))
 
 
-@router.get("/collectivites/{collectivite_id}/arbitrage:last", response_model=ArbitrageRunOut)
-def get_arbitrage_last(collectivite_id: str):
+@router.get(
+    "/collectivites/{collectivite_id}/arbitrage:last",
+    response_model=ArbitrageRunOut,
+)
+def get_arbitrage_last(
+    collectivite_id: str,
+    _user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("arbitrage:read")),
+):
     try:
         return get_last_arbitrage_out(collectivite_id)
     except KeyError as e:
@@ -59,8 +71,16 @@ def get_arbitrage_last(collectivite_id: str):
         _err(500, "INTERNAL_ERROR", str(e))
 
 
-@router.get("/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}", response_model=ArbitrageRunOut)
-def get_arbitrage_by_id_route(collectivite_id: str, arbitrage_id: str):
+@router.get(
+    "/collectivites/{collectivite_id}/arbitrage/{arbitrage_id}",
+    response_model=ArbitrageRunOut,
+)
+def get_arbitrage_by_id_route(
+    collectivite_id: str,
+    arbitrage_id: str,
+    _user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("arbitrage:read")),
+):
     try:
         return get_arbitrage_by_id(collectivite_id, arbitrage_id)
     except KeyError as e:
@@ -69,11 +89,16 @@ def get_arbitrage_by_id_route(collectivite_id: str, arbitrage_id: str):
         _err(500, "INTERNAL_ERROR", str(e))
 
 
-@router.get("/collectivites/{collectivite_id}/arbitrages", response_model=ArbitrageListOut)
+@router.get(
+    "/collectivites/{collectivite_id}/arbitrages",
+    response_model=ArbitrageListOut,
+)
 def get_arbitrages_paginated(
     collectivite_id: str,
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=10, ge=1, le=50),
+    _user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("arbitrage:read")),
 ):
     try:
         return list_arbitrages(collectivite_id, page=page, limit=limit)
@@ -81,11 +106,16 @@ def get_arbitrages_paginated(
         _err(500, "INTERNAL_ERROR", str(e))
 
 
-@router.get("/collectivites/{collectivite_id}/arbitrages-cursor", response_model=ArbitrageCursorOut)
+@router.get(
+    "/collectivites/{collectivite_id}/arbitrages-cursor",
+    response_model=ArbitrageCursorOut,
+)
 def get_arbitrages_cursor(
     collectivite_id: str,
     limit: int = Query(default=10, ge=1, le=50),
     cursor: str | None = Query(default=None),
+    _user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("arbitrage:read")),
 ):
     try:
         return list_arbitrages_cursor(collectivite_id, limit=limit, cursor=cursor)
@@ -93,8 +123,16 @@ def get_arbitrages_cursor(
         _err(500, "INTERNAL_ERROR", str(e))
 
 
-@router.put("/collectivites/{collectivite_id}/settings", response_model=dict)
-def put_collectivite_settings(collectivite_id: str, payload: CollectiviteSettings):
+@router.put(
+    "/collectivites/{collectivite_id}/settings",
+    response_model=dict,
+)
+def put_collectivite_settings(
+    collectivite_id: str,
+    payload: CollectiviteSettings,
+    _user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("settings:write")),
+):
     try:
         doc = upsert_settings(collectivite_id, payload.model_dump())
         return {"collectivite_id": collectivite_id, "settings": doc}
@@ -104,8 +142,15 @@ def put_collectivite_settings(collectivite_id: str, payload: CollectiviteSetting
         _err(500, "INTERNAL_ERROR", str(e))
 
 
-@router.get("/collectivites/{collectivite_id}/settings", response_model=dict)
-def get_collectivite_settings(collectivite_id: str):
+@router.get(
+    "/collectivites/{collectivite_id}/settings",
+    response_model=dict,
+)
+def get_collectivite_settings(
+    collectivite_id: str,
+    _user=Depends(require_collectivite_access),
+    _scope=Depends(require_scope("settings:read")),
+):
     try:
         return {"collectivite_id": collectivite_id, "settings": get_settings(collectivite_id)}
     except Exception as e:
