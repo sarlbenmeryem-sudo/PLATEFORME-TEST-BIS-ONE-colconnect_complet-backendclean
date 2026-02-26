@@ -9,6 +9,8 @@ from typing import Any, Dict
 from database.mongo import get_db
 from engine.arbitrage_v2 import calculer_arbitrage_2_0, ENGINE_VERSION
 
+from schemas.arbitrage import ArbitrageRunOut
+
 
 def _utc_now_dt() -> datetime:
     return datetime.now(timezone.utc)
@@ -140,6 +142,93 @@ def run_arbitrage(
     db.arbitrages.insert_one(out)
     return out
 
+
+
+def _to_api_out(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Construit le dict conforme à ArbitrageRunOut (ou le plus proche possible)."""
+    doc = _normalize_arbitrage_doc(doc)
+
+    # Champs top-level
+    out = {
+        "arbitrage_id": doc.get("arbitrage_id", "unknown"),
+        "collectivite_id": doc.get("collectivite_id", "unknown"),
+        "mandat": doc.get("mandat", "unknown"),
+        "synthese": doc.get("synthese") or {
+            "budget_max": 0.0,
+            "budget_retenu": 0.0,
+            "budget_restant": 0.0,
+            "nb_projets_total": 0,
+            "nb_projets_retenus": 0,
+        },
+        "projets": doc.get("projets") or [],
+        "audit": doc.get("audit") or {
+            "engine_version": ENGINE_VERSION,
+            "triggered_by": "unknown",
+            "payload_hash": "unknown",
+            "timestamp_utc": _utc_iso(),
+        },
+    }
+
+    # Normalisation projets (legacy-safe)
+    norm_projets = []
+    for p in out["projets"]:
+        if not isinstance(p, dict):
+            continue
+        norm_projets.append({
+            "id": p.get("id", "unknown"),
+            "nom": p.get("nom", "unknown"),
+            "cout_ttc": float(p.get("cout_ttc", 0.0) or 0.0),
+            "annee_realisation": int(p.get("annee_realisation", 0) or 0),
+            "score": float(p.get("score", 0.0) or 0.0),
+            "retenu": bool(p.get("retenu", False)),
+            "details_score": p.get("details_score") or {},
+        })
+    out["projets"] = norm_projets
+
+    # Recalcule synthese si manquante/incomplète
+    s = out["synthese"] if isinstance(out["synthese"], dict) else {}
+    if not all(k in s for k in ("budget_max","budget_retenu","budget_restant","nb_projets_total","nb_projets_retenus")):
+        budget_retenu = sum(p["cout_ttc"] for p in out["projets"] if p.get("retenu"))
+        out["synthese"] = {
+            "budget_max": float(s.get("budget_max", 0.0) or 0.0),
+            "budget_retenu": float(budget_retenu),
+            "budget_restant": float((s.get("budget_max", 0.0) or 0.0) - budget_retenu),
+            "nb_projets_total": len(out["projets"]),
+            "nb_projets_retenus": sum(1 for p in out["projets"] if p.get("retenu")),
+        }
+
+    return out
+
+
+def get_last_arbitrage_out(collectivite_id: str) -> Dict[str, Any]:
+    """
+    Retourne un arbitrage *conforme* au schéma ArbitrageRunOut.
+    On scanne les 20 derniers docs et on garde le premier qui valide.
+    """
+    db = get_db()
+    cursor = db.arbitrages.find(
+        {"collectivite_id": collectivite_id},
+        projection={"_id": 0},
+    ).sort([("created_at_dt", -1), ("created_at", -1)]).limit(20)
+
+    last_seen = None
+    for doc in cursor:
+        last_seen = doc
+        try:
+            out = _to_api_out(doc)
+            # Validation stricte de la réponse
+            ArbitrageRunOut.model_validate(out)
+            return out
+        except Exception:
+            continue
+
+    if not last_seen:
+        raise KeyError("Aucun arbitrage trouvé pour cette collectivité")
+
+    # fallback ultime: normaliser + retourner (peut encore échouer si doc vraiment incohérent)
+    out = _to_api_out(last_seen)
+    ArbitrageRunOut.model_validate(out)
+    return out
 
 def get_last_arbitrage(collectivite_id: str) -> Dict[str, Any]:
     db = get_db()

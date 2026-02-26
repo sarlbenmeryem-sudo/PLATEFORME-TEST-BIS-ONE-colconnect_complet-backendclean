@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Header
 from pydantic import ValidationError
 
 from schemas.arbitrage import ArbitrageRunIn, ArbitrageRunOut, CollectiviteSettings
-from services.arbitrage_service import run_arbitrage, get_last_arbitrage, upsert_settings
+from services.arbitrage_service import run_arbitrage, get_last_arbitrage_out, upsert_settings
 
 router = APIRouter(prefix="/api/v1", tags=["arbitrage"])
 
@@ -41,7 +41,7 @@ def post_arbitrage_run(
 @router.get("/collectivites/{collectivite_id}/arbitrage:last", response_model=ArbitrageRunOut)
 def get_arbitrage_last(collectivite_id: str):
     try:
-        out = get_last_arbitrage(collectivite_id)
+        out = get_last_arbitrage_out(collectivite_id)
         return {
             "arbitrage_id": out["arbitrage_id"],
             "collectivite_id": out["collectivite_id"],
