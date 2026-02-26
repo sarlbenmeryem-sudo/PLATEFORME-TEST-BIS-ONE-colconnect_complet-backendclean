@@ -14,15 +14,15 @@ def get_db():
 
 def _safe_create_index(collection, keys, **kwargs):
     """
-    Rend la création d'index idempotente:
-    - si l'index existe déjà (même clés/options) -> OK
-    - si conflit de nom/options -> on n'empêche pas le démarrage
+    Création d'index idempotente:
+    - si l'index existe déjà -> OK
+    - si conflit d'options/nom (IndexOptionsConflict) -> on ignore pour ne pas bloquer le démarrage
     """
     try:
         collection.create_index(keys, **kwargs)
     except OperationFailure as e:
-        # code 85 / IndexOptionsConflict : index déjà présent mais options/nom diffèrent
-        if getattr(e, "code", None) == 85 or "IndexOptionsConflict" in str(e) or "already exists" in str(e):
+        msg = str(e)
+        if getattr(e, "code", None) == 85 or "IndexOptionsConflict" in msg or "already exists" in msg:
             return
         raise
 
@@ -30,23 +30,11 @@ def _safe_create_index(collection, keys, **kwargs):
 def ensure_indexes():
     db = get_db()
 
-    # 1) settings: un seul document par collectivité
-    # -> on évite 'name=' pour ne pas entrer en conflit avec collectivite_id_1 existant
-    _safe_create_index(
-        db.collectivites_settings,
-        [("collectivite_id", ASCENDING)],
-        unique=True,
-    )
+    # Settings: un seul doc par collectivité (évite name= pour ne pas conflit avec collectivite_id_1)
+    _safe_create_index(db.collectivites_settings, [("collectivite_id", ASCENDING)], unique=True)
 
-    # 2) arbitrages: tri rapide pour :last
-    _safe_create_index(
-        db.arbitrages,
-        [("collectivite_id", ASCENDING), ("created_at_dt", DESCENDING)],
-    )
+    # Arbitrages: tri rapide pour :last
+    _safe_create_index(db.arbitrages, [("collectivite_id", ASCENDING), ("created_at_dt", DESCENDING)])
 
-    # 3) arbitrage_id: accès direct (si déjà existant autrement, on ignore le conflit)
-    _safe_create_index(
-        db.arbitrages,
-        [("arbitrage_id", ASCENDING)],
-        unique=True,
-    )
+    # Arbitrage ID: accès direct
+    _safe_create_index(db.arbitrages, [("arbitrage_id", ASCENDING)], unique=True)

@@ -12,7 +12,7 @@ def startup_event():
     try:
         ensure_indexes()
     except Exception:
-        # On ne bloque jamais le démarrage pour un sujet d'index
+        # Ne jamais bloquer le démarrage pour une histoire d'index
         pass
 
 
