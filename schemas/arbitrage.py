@@ -105,3 +105,10 @@ class ArbitrageListOut(BaseModel):
     total: int
     has_next: bool
     items: List[ArbitrageListItem]
+
+
+class ArbitrageCursorOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    limit: int
+    next_cursor: str | None
+    items: List[ArbitrageListItem]

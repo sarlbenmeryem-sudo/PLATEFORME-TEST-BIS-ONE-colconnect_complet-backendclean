@@ -351,3 +351,75 @@ def list_arbitrages(collectivite_id: str, page: int = 1, limit: int = 10) -> Dic
         "has_next": bool(has_next),
         "items": items,
     }
+
+import base64
+import json
+
+
+def _encode_cursor(created_at_dt, arbitrage_id):
+    payload = {
+        "created_at_dt": created_at_dt.isoformat(),
+        "arbitrage_id": arbitrage_id,
+    }
+    raw = json.dumps(payload).encode()
+    return base64.urlsafe_b64encode(raw).decode()
+
+
+def _decode_cursor(cursor: str):
+    raw = base64.urlsafe_b64decode(cursor.encode())
+    return json.loads(raw.decode())
+
+
+def list_arbitrages_cursor(collectivite_id: str, limit: int = 10, cursor: str | None = None):
+    if limit < 1:
+        limit = 1
+    if limit > 50:
+        limit = 50
+
+    db = get_db()
+    filt = {"collectivite_id": collectivite_id, "engine_version": ENGINE_VERSION}
+
+    if cursor:
+        data = _decode_cursor(cursor)
+        filt["$or"] = [
+            {"created_at_dt": {"$lt": data["created_at_dt"]}},
+            {
+                "created_at_dt": data["created_at_dt"],
+                "arbitrage_id": {"$lt": data["arbitrage_id"]},
+            },
+        ]
+
+    cursor_db = (
+        db.arbitrages.find(filt, projection={"_id": 0})
+        .sort([("created_at_dt", -1), ("arbitrage_id", -1)])
+        .limit(limit + 1)
+    )
+
+    docs = list(cursor_db)
+    has_next = len(docs) > limit
+    docs = docs[:limit]
+
+    items = []
+    next_cursor = None
+
+    for doc in docs:
+        out = _to_api_out(doc)
+        items.append(
+            {
+                "arbitrage_id": out["arbitrage_id"],
+                "collectivite_id": out["collectivite_id"],
+                "mandat": out["mandat"],
+                "synthese": out["synthese"],
+                "audit": out["audit"],
+            }
+        )
+
+    if has_next and docs:
+        last = docs[-1]
+        next_cursor = _encode_cursor(last["created_at_dt"], last["arbitrage_id"])
+
+    return {
+        "limit": limit,
+        "next_cursor": next_cursor,
+        "items": items,
+    }

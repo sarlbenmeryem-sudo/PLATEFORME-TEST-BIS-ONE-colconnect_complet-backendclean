@@ -96,3 +96,15 @@ def get_collectivite_settings(collectivite_id: str):
         return {"collectivite_id": collectivite_id, "settings": get_settings(collectivite_id)}
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
+
+
+@router.get("/collectivites/{collectivite_id}/arbitrages-cursor", response_model=ArbitrageCursorOut)
+def get_arbitrages_cursor(
+    collectivite_id: str,
+    limit: int = Query(default=10, ge=1, le=50),
+    cursor: str | None = Query(default=None),
+):
+    try:
+        return list_arbitrages_cursor(collectivite_id, limit=limit, cursor=cursor)
+    except Exception as e:
+        _err(500, "INTERNAL_ERROR", str(e))
