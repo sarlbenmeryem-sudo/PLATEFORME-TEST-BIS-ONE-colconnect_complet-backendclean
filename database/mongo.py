@@ -14,15 +14,15 @@ def get_db():
 
 
 def ensure_indexes():
-    """
-    À appeler au démarrage pour garantir les indexes nécessaires (idempotent).
-    """
     db = get_db()
 
-    # Arbitrages: recherche du dernier arbitrage + filtres par collectivité/version
+    # Nouveau tri fiable (datetime BSON)
+    db.arbitrages.create_index([("collectivite_id", ASCENDING), ("created_at_dt", DESCENDING)])
+
+    # Legacy (si des docs ont created_at en string)
     db.arbitrages.create_index([("collectivite_id", ASCENDING), ("created_at", DESCENDING)])
+
     db.arbitrages.create_index([("collectivite_id", ASCENDING), ("engine_version", ASCENDING)])
     db.arbitrages.create_index([("payload_hash", ASCENDING)])
 
-    # Settings: un doc par collectivité
     db.collectivites_settings.create_index([("collectivite_id", ASCENDING)], unique=True)
