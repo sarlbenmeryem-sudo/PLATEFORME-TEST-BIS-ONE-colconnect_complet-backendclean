@@ -6,6 +6,7 @@ from schemas.arbitrage import (
     ArbitrageRunOut,
     CollectiviteSettings,
     ArbitrageListOut,
+    ArbitrageCursorOut,
 )
 from services.arbitrage_service import (
     run_arbitrage,
@@ -14,6 +15,7 @@ from services.arbitrage_service import (
     get_settings,
     get_arbitrage_by_id,
     list_arbitrages,
+    list_arbitrages_cursor,
 )
 
 router = APIRouter(prefix="/api/v1", tags=["arbitrage"])
@@ -79,6 +81,18 @@ def get_arbitrages_paginated(
         _err(500, "INTERNAL_ERROR", str(e))
 
 
+@router.get("/collectivites/{collectivite_id}/arbitrages-cursor", response_model=ArbitrageCursorOut)
+def get_arbitrages_cursor(
+    collectivite_id: str,
+    limit: int = Query(default=10, ge=1, le=50),
+    cursor: str | None = Query(default=None),
+):
+    try:
+        return list_arbitrages_cursor(collectivite_id, limit=limit, cursor=cursor)
+    except Exception as e:
+        _err(500, "INTERNAL_ERROR", str(e))
+
+
 @router.put("/collectivites/{collectivite_id}/settings", response_model=dict)
 def put_collectivite_settings(collectivite_id: str, payload: CollectiviteSettings):
     try:
@@ -94,17 +108,5 @@ def put_collectivite_settings(collectivite_id: str, payload: CollectiviteSetting
 def get_collectivite_settings(collectivite_id: str):
     try:
         return {"collectivite_id": collectivite_id, "settings": get_settings(collectivite_id)}
-    except Exception as e:
-        _err(500, "INTERNAL_ERROR", str(e))
-
-
-@router.get("/collectivites/{collectivite_id}/arbitrages-cursor", response_model=ArbitrageCursorOut)
-def get_arbitrages_cursor(
-    collectivite_id: str,
-    limit: int = Query(default=10, ge=1, le=50),
-    cursor: str | None = Query(default=None),
-):
-    try:
-        return list_arbitrages_cursor(collectivite_id, limit=limit, cursor=cursor)
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
