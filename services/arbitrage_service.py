@@ -254,3 +254,20 @@ def get_last_arbitrage(collectivite_id: str) -> Dict[str, Any]:
 
     # fallback ultime: normalise ce qu'on a
     return _normalize_arbitrage_doc(last)
+
+
+def get_settings(collectivite_id: str) -> Dict[str, Any]:
+    db = get_db()
+    doc = db.collectivites_settings.find_one(
+        {"collectivite_id": collectivite_id},
+        projection={"_id": 0},
+    )
+    if not doc:
+        # valeurs par défaut si rien en base
+        return {
+            "collectivite_id": collectivite_id,
+            "poids_climat": 0.4,
+            "poids_education": 0.3,
+            "poids_financier": 0.3,
+        }
+    return doc

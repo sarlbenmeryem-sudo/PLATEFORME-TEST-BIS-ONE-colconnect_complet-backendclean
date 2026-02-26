@@ -2,7 +2,12 @@ from fastapi import APIRouter, HTTPException, Header
 from pydantic import ValidationError
 
 from schemas.arbitrage import ArbitrageRunIn, ArbitrageRunOut, CollectiviteSettings
-from services.arbitrage_service import run_arbitrage, get_last_arbitrage_out, upsert_settings
+from services.arbitrage_service import (
+    run_arbitrage,
+    get_last_arbitrage_out,
+    upsert_settings,
+    get_settings,
+)
 
 router = APIRouter(prefix="/api/v1", tags=["arbitrage"])
 
@@ -21,7 +26,6 @@ def post_arbitrage_run(
     try:
         data = payload.model_dump()
         out = run_arbitrage(collectivite_id, data, triggered_by=triggered_by)
-        # On renvoie uniquement le contrat Out (extra forbid côté response_model)
         return {
             "arbitrage_id": out["arbitrage_id"],
             "collectivite_id": out["collectivite_id"],
@@ -42,14 +46,7 @@ def post_arbitrage_run(
 def get_arbitrage_last(collectivite_id: str):
     try:
         out = get_last_arbitrage_out(collectivite_id)
-        return {
-            "arbitrage_id": out["arbitrage_id"],
-            "collectivite_id": out["collectivite_id"],
-            "mandat": out["mandat"],
-            "synthese": out["synthese"],
-            "projets": out["projets"],
-            "audit": out["audit"],
-        }
+        return out
     except KeyError as e:
         _err(404, "NOT_FOUND", str(e))
     except Exception as e:
@@ -63,5 +60,13 @@ def put_collectivite_settings(collectivite_id: str, payload: CollectiviteSetting
         return {"collectivite_id": collectivite_id, "settings": doc}
     except ValidationError as e:
         _err(422, "VALIDATION_ERROR", str(e))
+    except Exception as e:
+        _err(500, "INTERNAL_ERROR", str(e))
+
+
+@router.get("/collectivites/{collectivite_id}/settings", response_model=dict)
+def get_collectivite_settings(collectivite_id: str):
+    try:
+        return {"collectivite_id": collectivite_id, "settings": get_settings(collectivite_id)}
     except Exception as e:
         _err(500, "INTERNAL_ERROR", str(e))
