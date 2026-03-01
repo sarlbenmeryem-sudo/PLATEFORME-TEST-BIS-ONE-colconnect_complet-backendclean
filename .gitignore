@@ -21,3 +21,13 @@ diag_*.log
 # Local
 venv/
 .DS_Store
+.venv/
+.pytest_cache/
+.mypy_cache/
+verify_*.log
+.env.*
+*.secret
+*jwt*secret*
+.jwt_secret
+jwt_secret
+jwt_secret.txt
