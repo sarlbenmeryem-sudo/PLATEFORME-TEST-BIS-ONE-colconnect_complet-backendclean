@@ -1,0 +1,12 @@
+from fastapi import APIRouter
+import os
+
+router = APIRouter(prefix="/api")
+
+
+@router.get("/version")
+def version():
+    # Render expose souvent RENDER_GIT_COMMIT ; sinon fallback
+    return {
+        "render_git_commit": os.getenv("RENDER_GIT_COMMIT", "unknown"),
+    }

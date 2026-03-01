@@ -1,7 +1,0 @@
-== [CC_PATCH_MONITOR_ALERTS_WAF_V3_FIX_CONDITIONQUERY] Start ==
-== CLI config: allow preview extensions + no prompt ==
-== Ensure scheduled-query extension installed ==
-✅ scheduled-query extension ready
-== Ensure Action Group exists ==
-✅ Action Group exists: ag-colconnect-prod-alerts
-== Create/Update Alert: WAF blocks spike (>200 / 5m) ==

@@ -1,0 +1,58 @@
+from datetime import datetime
+import uuid
+from typing import Any, Dict
+
+from bson import ObjectId
+
+from database.mongo import get_db
+from engine.arbitrage_v2 import calculer_arbitrage_2_0
+
+
+def _to_json_safe(obj):
+    if isinstance(obj, ObjectId):
+        return str(obj)
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, dict):
+        return {k: _to_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_to_json_safe(x) for x in obj]
+    return obj
+
+
+def run_arbitrage(collectivite_id: str, payload_dict: Dict[str, Any]) -> Dict[str, Any]:
+    db = get_db()
+
+    arbitrage_id = f"arb-{datetime.utcnow().year}-{uuid.uuid4().hex[:6]}"
+
+    data = dict(payload_dict)
+    data["collectivite_id"] = collectivite_id
+
+    result = calculer_arbitrage_2_0(data)
+
+    result["collectivite_id"] = collectivite_id
+    result["arbitrage_id"] = arbitrage_id
+    result["created_at"] = datetime.utcnow()
+
+    if isinstance(result.get("projets"), list):
+        for p in result["projets"]:
+            if isinstance(p, dict):
+                p["arbitrage_id"] = arbitrage_id
+
+    db.arbitrages.insert_one(result)
+
+    return _to_json_safe(result)
+
+
+def get_last_arbitrage(collectivite_id: str) -> Dict[str, Any]:
+    db = get_db()
+
+    doc = db.arbitrages.find_one(
+        {"collectivite_id": collectivite_id},
+        sort=[("created_at", -1)],
+        projection={"_id": 0},
+    )
+    if not doc:
+        raise KeyError("Aucun arbitrage trouvé pour cette collectivité")
+
+    return _to_json_safe(doc)

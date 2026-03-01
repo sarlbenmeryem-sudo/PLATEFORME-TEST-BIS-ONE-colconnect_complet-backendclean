@@ -1,0 +1,25 @@
+from fastapi import APIRouter, HTTPException
+
+from schemas.arbitrage import ArbitrageRunIn
+from services.arbitrage_service import run_arbitrage, get_last_arbitrage
+
+router = APIRouter(prefix="/api")
+
+
+@router.post("/collectivites/{collectivite_id}/arbitrage:run")
+def post_arbitrage_run(collectivite_id: str, payload: ArbitrageRunIn):
+    try:
+        data = payload.model_dump()
+        return run_arbitrage(collectivite_id, data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/collectivites/{collectivite_id}/arbitrage:full")
+def get_arbitrage_full(collectivite_id: str):
+    try:
+        return get_last_arbitrage(collectivite_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

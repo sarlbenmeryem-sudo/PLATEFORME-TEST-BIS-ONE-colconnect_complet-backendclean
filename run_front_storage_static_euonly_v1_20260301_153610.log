@@ -1,5 +1,0 @@
-== [CC_PATCH_FRONT_STORAGE_STATIC_EUONLY_V1] Start ==
-== Ensure Storage Account exists ==
-✅ Created Storage: stcolconnectfrontfrc01
-== Enable Static Website ==
-== Upload minimal vitrine files (idempotent) ==

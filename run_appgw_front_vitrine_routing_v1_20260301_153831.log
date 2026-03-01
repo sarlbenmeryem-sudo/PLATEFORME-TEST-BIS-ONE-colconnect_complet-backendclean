@@ -1,4 +1,0 @@
-== [CC_PATCH_APPGW_FRONT_VITRINE_ROUTING_V1] Start ==
-== Resolve Storage static website host ==
-WEB_HOST=stcolconnectfrontfrc01.z28.web.core.windows.net
-== Ensure ssl-cert exists on AppGW: ssl-colconnect-root-www ==

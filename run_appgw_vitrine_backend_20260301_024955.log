@@ -1,7 +1,0 @@
-== [1] Auto-detect Storage Static Website host ==
-✅ Detected web host: stcolconnectfrprod010247.z28.web.core.windows.net
-
-== [2] Ensure backend pool ==
-✅ Backend pool created
-
-== [3] Ensure probe ==

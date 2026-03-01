@@ -1,5 +1,0 @@
-== [CC_PATCH_MONITOR_ALERTS_WAF_V4_COMPAT] Start ==
-== Ensure scheduled-query extension installed ==
-== Ensure Action Group exists ==
-✅ Action Group exists: ag-colconnect-prod-alerts
-✅ Created: alert-waf-blocks-spike

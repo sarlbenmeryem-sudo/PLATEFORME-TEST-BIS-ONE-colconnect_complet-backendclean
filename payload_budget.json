@@ -1,0 +1,16 @@
+{
+  "mandat": "2025-2030",
+  "contraintes": { "budget_investissement_max": 10000000, "seuil_capacite_desendettement_ans": 15 },
+  "hypotheses": {
+    "taux_subventions_moyen": 0.35,
+    "inflation_travaux": 0.03,
+    "annee_reference": 2025,
+    "epargne_brute_annuelle": 5000000,
+    "encours_dette_initial": 48000000
+  },
+  "projets": [
+    {"id":"A","nom":"A","cout_ttc":8000000,"priorite":"elevee","impact_climat":"fort","impact_education":"fort","annee_realisation":2026},
+    {"id":"B","nom":"B","cout_ttc":4000000,"priorite":"moyenne","impact_climat":"moyen","impact_education":"faible","annee_realisation":2027},
+    {"id":"C","nom":"C","cout_ttc":3000000,"priorite":"moyenne","impact_climat":"moyen","impact_education":"faible","annee_realisation":2027}
+  ]
+}

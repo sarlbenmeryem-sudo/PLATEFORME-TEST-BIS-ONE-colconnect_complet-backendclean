@@ -1,28 +1,23 @@
-
-requirements.txt.bak.*
-*.bak.*
-
-# ColConnect backups
-requirements.txt.bak.*
-*.bak.*
-server_backup.py
-
-__pycache__/
-payload.json
-
-__pycache__/
-payload.json
-
-__pycache__/
-payload_budget.json
-
+# Python
 __pycache__/
 *.pyc
-
-# local secrets / env
-jwt_secret
-jwt_secret.txt
-.jwt_secret
 .env
-.venv/
-__pycache__/
+
+# Logs
+*.log
+
+# Certificates
+*.pfx
+*.p12
+*.pem
+*.key
+
+# Azure scripts & infra
+cc_patch_*.sh
+cc_*.sh
+run_*.log
+diag_*.log
+
+# Local
+venv/
+.DS_Store

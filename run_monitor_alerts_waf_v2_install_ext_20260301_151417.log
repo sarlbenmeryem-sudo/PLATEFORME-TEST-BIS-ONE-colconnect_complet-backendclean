@@ -1,7 +1,0 @@
-== [CC_PATCH_MONITOR_ALERTS_WAF_V2_INSTALL_EXT] Start ==
-== Configure auto-install extensions (no prompt) ==
-== Ensure scheduled-query extension installed ==
-✅ scheduled-query extension ready
-== Ensure Action Group exists ==
-✅ Action Group exists: ag-colconnect-prod-alerts
-== Create/Update Alert: WAF blocks spike (5m) ==

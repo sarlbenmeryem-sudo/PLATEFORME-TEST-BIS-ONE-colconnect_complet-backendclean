@@ -1,3 +1,0 @@
-== [CC_PATCH_WAF_SWAGGER_ADD_API_OPENAPI_V1] Start ==
-❌ Cannot extract allowlist IPs from r4. Stop.
-Rollback (git): git reset --hard HEAD~1

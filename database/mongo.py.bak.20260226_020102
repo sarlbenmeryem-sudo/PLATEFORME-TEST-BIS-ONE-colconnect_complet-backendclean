@@ -1,0 +1,11 @@
+import os
+from pymongo import MongoClient
+
+_MONGO_URI = os.getenv("MONGO_URI", "")
+_client = MongoClient(_MONGO_URI) if _MONGO_URI else None
+
+
+def get_db():
+    if not _client:
+        raise RuntimeError("MongoDB non configuré (MONGO_URI manquant)")
+    return _client["colconnect"]

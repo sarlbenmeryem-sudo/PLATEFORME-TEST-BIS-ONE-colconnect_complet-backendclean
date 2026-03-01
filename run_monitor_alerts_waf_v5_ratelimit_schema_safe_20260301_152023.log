@@ -1,4 +1,0 @@
-== [CC_PATCH_MONITOR_ALERTS_WAF_V5_RATELIMIT_SCHEMA_SAFE] Start ==
-== Delete existing rate limit alert if present ==
-
-== Create RateLimit-proxy alert: blocked traffic spike on /api/ (>50/5m) ==

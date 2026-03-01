@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1.6
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8000 \
+    APP_MODULE=main:app \
+    WORKERS=2
+
+# OS deps (curl for healthcheck/debug; build-essential intentionally omitted for runtime)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy dependency manifests first (better layer cache)
+COPY requirements*.txt /app/ 2>/dev/null || true
+COPY pyproject.toml poetry.lock* /app/ 2>/dev/null || true
+
+# Install deps
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    if [ -f "requirements.txt" ]; then \
+      pip install -r requirements.txt; \
+    elif [ -f "pyproject.toml" ]; then \
+      pip install "poetry==1.8.3" && \
+      poetry config virtualenvs.create false && \
+      poetry install --no-interaction --no-ansi --only main; \
+    else \
+      echo "❌ No requirements.txt or pyproject.toml found in build context." && exit 1; \
+    fi
+
+# Copy app
+COPY . /app
+
+EXPOSE 8000
+
+# Optional: container-level healthcheck hitting /health
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS "http://127.0.0.1:${PORT}/health" || exit 1
+
+# Gunicorn (prod) with Uvicorn workers
+# APP_MODULE is configurable at runtime: e.g. -e APP_MODULE="app.main:app"
+CMD ["sh", "-lc", "exec gunicorn -k uvicorn.workers.UvicornWorker -w ${WORKERS} -b 0.0.0.0:${PORT} ${APP_MODULE} --access-logfile - --error-logfile - --log-level info --timeout 60"]

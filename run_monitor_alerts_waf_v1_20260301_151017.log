@@ -1,5 +1,0 @@
-== [CC_PATCH_MONITOR_ALERTS_WAF_V1] Start ==
-== Ensure Action Group exists ==
-✅ Created Action Group: ag-colconnect-prod-alerts
-== Create/Update Alert: WAF blocks spike (5m) ==
-The command requires the extension scheduled-query. Do you want to install it now? The command will continue to run after the extension is installed. (Y/n): 

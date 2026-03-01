@@ -1,0 +1,36 @@
+from typing import List, Literal
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class Contraintes(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    budget_investissement_max: float
+    seuil_capacite_desendettement_ans: float
+
+
+class Hypotheses(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    taux_subventions_moyen: float
+    inflation_travaux: float
+    annee_reference: int
+    epargne_brute_annuelle: float
+    encours_dette_initial: float
+
+
+class ProjetIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str
+    nom: str
+    cout_ttc: float
+    priorite: Literal["elevee", "moyenne", "faible"]
+    impact_climat: Literal["fort", "moyen", "faible"]
+    impact_education: Literal["fort", "moyen", "faible"]
+    annee_realisation: int
+
+
+class ArbitrageRunIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    mandat: str
+    contraintes: Contraintes
+    hypotheses: Hypotheses
+    projets: List[ProjetIn] = Field(default_factory=list)
