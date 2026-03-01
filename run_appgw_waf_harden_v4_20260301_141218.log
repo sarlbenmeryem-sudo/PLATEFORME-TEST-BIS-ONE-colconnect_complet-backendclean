@@ -1,0 +1,29 @@
+== [CC_PATCH_APPGW_WAF_HARDEN_V4] Start ==
+== Ensure WAF policy exists ==
+✅ WAF policy exists: wafp-colconnect-prod
+
+== Detect managed rule sets (raw) ==
+[
+  {
+    "ruleGroupOverrides": [],
+    "ruleSetType": "Microsoft_DefaultRuleSet",
+    "ruleSetVersion": "2.1"
+  }
+]
+
+HAS_OWASP=false
+
+== OWASP not detected -> attempt add 3.2 (should only work if no primary exists) ==
+❌ Add OWASP failed. Output:
+ERROR: (ApplicationGatewayFirewallManagedRuleSetsHasMultiplePrimaryRuleSets) ManagedRuleSets cannot have multiple primary Rulesets in policy `/subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/wafp-colconnect-prod'.
+Code: ApplicationGatewayFirewallManagedRuleSetsHasMultiplePrimaryRuleSets
+Message: ManagedRuleSets cannot have multiple primary Rulesets in policy `/subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/wafp-colconnect-prod'.
+
+== Listing managed rule sets (to identify the existing primary) ==
+Version
+---------
+2.1
+
+STOP: Policy already has a primary ruleset but OWASP wasn't detected by grep/JMES.
+We will not remove anything automatically (risk).
+Rollback (git): git reset --hard HEAD~1

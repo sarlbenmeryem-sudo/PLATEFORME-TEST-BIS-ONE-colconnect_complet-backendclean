@@ -1,0 +1,6 @@
+== [1] Scan for PFX files (top 10 newest) ==
+     1	1772314810 ./api-colconnect-fr.pfx
+     2	1772314810 ../backend/api-colconnect-fr.pfx
+✅ Selected PFX: ./api-colconnect-fr.pfx
+
+== [2] Import certificate into KeyVault ==

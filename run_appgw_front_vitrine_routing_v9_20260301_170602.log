@@ -1,0 +1,27 @@
+== [CC_PATCH_APPGW_FRONT_VITRINE_ROUTING_V9_RECREATE_RULES_COMPAT] Start ==
+== Resolve WEB_HOST from Storage static endpoint ==
+WEB_HOST=stcolconnectfrontfrc01.z28.web.core.windows.net
+== Ensure ssl-cert exists on AppGW: ssl-colconnect-root-www ==
+== Ensure backend pool for Storage web host ==
+== Ensure probe-front (Https + host=WEB_HOST + /) ==
+== Ensure http-settings front (Https/443 + host header=WEB_HOST + probe) ==
+== Ensure redirect configs ==
+== Ensure path map exists (default front + /api/* redirect) ==
+ℹ️ Path map exists: pm-front
+== Helper: delete ALL rules bound to a listener (safe) ==
+== Recreate HTTP redirect rules ==
+ℹ️ Deleting rule bound to lis-http-root: rule-http-root
+ℹ️ Deleting rule bound to lis-http-www: rule-http-www
+== Recreate HTTPS path-based rules (CLI compat: specify --address-pool and --http-settings explicitly) ==
+== Verify routing rules ==
+Name                       Priority    RuleType          Listener
+-------------------------  ----------  ----------------  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+rule1                      100         Basic             /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/applicationGateways/agw-colconnect-prod/httpListeners/appGatewayHttpListener
+rule-http-root             101         Basic             /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/applicationGateways/agw-colconnect-prod/httpListeners/lis-http-root
+rule-http-www              102         Basic             /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/applicationGateways/agw-colconnect-prod/httpListeners/lis-http-www
+rule-https-api-to-backend  120         Basic             /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/applicationGateways/agw-colconnect-prod/httpListeners/lst-https-api
+rule-https-root            201         PathBasedRouting  /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/applicationGateways/agw-colconnect-prod/httpListeners/lis-https-root
+rule-https-www             202         PathBasedRouting  /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/applicationGateways/agw-colconnect-prod/httpListeners/lis-https-www
+
+Rollback (git): git reset --hard HEAD~1
+== Done ==

@@ -1,0 +1,5 @@
+== [CC_PATCH_APPGW_ENABLE_DIAGNOSTICS_LOGS_V1] Start ==
+== Ensure Log Analytics Workspace exists ==
+✅ LAW exists: law-colconnect-prod-frc
+
+== Upsert Diagnostic Setting on AppGW ==

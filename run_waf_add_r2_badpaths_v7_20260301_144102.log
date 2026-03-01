@@ -1,0 +1,53 @@
+== [CC_PATCH_WAF_ADD_R2_BADPATHS_V7] Start ==
+== Read existing customRules (must include r1) ==
+[
+  {
+    "action": "Block",
+    "matchConditions": [
+      {
+        "matchValues": [
+          "sqlmap",
+          "nmap",
+          "nikto",
+          "gobuster",
+          "dirbuster",
+          "wpscan",
+          "acunetix",
+          "nessus",
+          "openvas",
+          "zgrab",
+          "python-requests"
+        ],
+        "matchVariables": [
+          {
+            "selector": "User-Agent",
+            "variableName": "RequestHeaders"
+          }
+        ],
+        "negationConditon": false,
+        "operator": "Contains",
+        "transforms": [
+          "Lowercase"
+        ]
+      }
+    ],
+    "name": "r1",
+    "priority": 10,
+    "ruleType": "MatchRule",
+    "state": "Enabled"
+  }
+]
+
+HAS_R1=1
+
+== Apply customRules atomically: keep r1 and add r2 ==
+✅ Added r2 while preserving r1
+
+== Verify ==
+Name    Priority    RuleType    Action    Conditions
+------  ----------  ----------  --------  ------------
+r1      10          MatchRule   Block     1
+r2      20          MatchRule   Block     1
+
+Rollback (git): git reset --hard HEAD~1
+== Done ==

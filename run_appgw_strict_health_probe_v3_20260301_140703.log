@@ -1,0 +1,4 @@
+== [CC_PATCH_APPGW_STRICT_HEALTH_PROBE_V3] Start ==
+== Update http-settings (host header + disable host from backend pool) ==
+
+== Update probe strict path + take host from http-settings ==

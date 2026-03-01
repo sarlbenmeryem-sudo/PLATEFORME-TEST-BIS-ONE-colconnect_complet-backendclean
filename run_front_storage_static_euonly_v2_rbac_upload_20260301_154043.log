@@ -1,0 +1,10 @@
+== [CC_PATCH_FRONT_STORAGE_STATIC_EUONLY_V2_RBAC_UPLOAD] Start ==
+== Resolve principal (current signed-in user/SPN) ==
+PRINCIPAL_HINT=dceab775-1244-4912-8843-654b03d1ae66
+== Resolve Storage resource ID ==
+ST_ID=/subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Storage/storageAccounts/stcolconnectfrontfrc01
+== Assign Storage Blob Data Contributor to current identity (data plane) ==
+✅ RBAC ensured: Storage Blob Data Contributor
+
+== Enable Static Website (auth-mode login) ==
+== Upload minimal vitrine files (auth-mode login) ==

@@ -1,0 +1,37 @@
+== [CC_PATCH_APPGW_ENABLE_DIAGNOSTICS_LOGS_V2] Start ==
+== Ensure provider Microsoft.Insights is registered ==
+Current Microsoft.Insights state: NotRegistered
+Registering Microsoft.Insights...
+Waiting for Microsoft.Insights to become Registered...
+  [1/30] state=Registering
+  [2/30] state=Registering
+  [3/30] state=Registering
+  [4/30] state=Registering
+  [5/30] state=Registering
+  [6/30] state=Registering
+  [7/30] state=Registering
+  [8/30] state=Registering
+  [9/30] state=Registering
+  [10/30] state=Registering
+  [11/30] state=Registering
+  [12/30] state=Registering
+  [13/30] state=Registering
+  [14/30] state=Registering
+  [15/30] state=Registering
+  [16/30] state=Registering
+  [17/30] state=Registered
+✅ Microsoft.Insights is Registered
+
+== Ensure Log Analytics Workspace exists ==
+✅ LAW exists: law-colconnect-prod-frc
+
+== Upsert Diagnostic Setting on AppGW ==
+✅ Diagnostics enabled: diag-agw-colconnect-prod -> law-colconnect-prod-frc
+
+== Verify diagnostic settings ==
+LogAnalyticsDestinationType    Name                      ResourceGroup           WorkspaceId
+-----------------------------  ------------------------  ----------------------  --------------------------------------------------------------------------------------------------------------------------------------------------------------------
+AzureDiagnostics               diag-agw-colconnect-prod  rg-colconnect-prod-frc  /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.OperationalInsights/workspaces/law-colconnect-prod-frc
+
+Rollback (git): git reset --hard HEAD~1
+== Done ==

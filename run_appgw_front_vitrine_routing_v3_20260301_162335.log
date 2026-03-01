@@ -1,0 +1,10 @@
+== [CC_PATCH_APPGW_FRONT_VITRINE_ROUTING_V3_ALLINONE] Start ==
+== Resolve Storage static website host ==
+WEB_HOST=stcolconnectfrontfrc01.z28.web.core.windows.net
+== Ensure ssl-cert exists on AppGW: ssl-colconnect-root-www ==
+== Ensure frontend ports 80/443 ==
+== Resolve frontend IP config name ==
+FEIP=appGatewayFrontendIP
+== Upsert backend pool for Storage web host ==
+== Upsert probe for static site (/) with host=WEB_HOST ==
+== Upsert http-settings (HTTPS/443 + host header=WEB_HOST + probe) ==

@@ -1,0 +1,8 @@
+== Policy: waf-colconnect-prod ==
+Mode        State
+----------  -------
+Prevention  Enabled
+
+== Rollback Git (1 step) ==
+git reset --hard HEAD~1
+== Done ==

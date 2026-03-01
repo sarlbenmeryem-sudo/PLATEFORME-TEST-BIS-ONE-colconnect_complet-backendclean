@@ -1,0 +1,4 @@
+== [CC_PATCH_APPGW_STRICT_HEALTH_PROBE_V5] Start ==
+== Update http-settings (force Host header) ==
+
+== Clear probe.host (must be empty when pickHostNameFromBackendHttpSettings=true) ==

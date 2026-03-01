@@ -1,0 +1,7 @@
+== [CC_PATCH_APPGW_WAF_HARDEN_V3] Start ==
+== Ensure WAF policy exists ==
+✅ WAF policy exists: wafp-colconnect-prod
+
+== Detect existing OWASP ruleset version ==
+Current OWASP_VER=''
+== Add OWASP 3.2 (no existing primary) ==

@@ -1,0 +1,4 @@
+== [CC_PATCH_WAF_CUSTOM_RULES_MINIMAL_V1] Start ==
+== Ensure policy exists ==
+
+== Rule 10: Block obvious scanners by User-Agent (low false positives) ==

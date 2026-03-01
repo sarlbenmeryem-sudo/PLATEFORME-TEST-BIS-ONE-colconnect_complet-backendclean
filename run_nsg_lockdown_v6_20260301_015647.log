@@ -1,0 +1,29 @@
+== [CC_PATCH_NSG_LOCKDOWN_VMSS_SUBNET_V6_20260301] Start ==
+
+== [1] Discover VMSS subnet id ==
+✅ VMSS subnet: vnet-colconnect-prod-frc/snet-api
+✅ VMSS subnet id: /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/virtualNetworks/vnet-colconnect-prod-frc/subnets/snet-api
+
+== [2] Ensure NSG exists ==
+Creating NSG: nsg-colconnect-vmss-api-prod-frc
+✅ NSG created
+
+== [3] Upsert CC rules (delete old cc-*) ==
+✅ Rules applied
+
+== [4] Attach NSG to VMSS subnet ==
+✅ NSG attached to VMSS subnet
+
+== [5] Show CC rules ==
+Column1    Column2                       Column3    Column4       Column5
+---------  ----------------------------  ---------  ------------  ---------
+200        cc-allow-appgw-to-api-8000-0  Allow      10.10.0.0/24  8000
+300        cc-deny-any-to-api-8000       Deny       *             8000
+
+== [6] AppGW backend health sanity ==
+
+
+== Rollback Git (1 step) ==
+git reset --hard HEAD~1
+
+== [CC_PATCH_NSG_LOCKDOWN_VMSS_SUBNET_V6_20260301] Done ==

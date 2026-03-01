@@ -1,0 +1,2 @@
+❌ PFX_PASS env var required.
+   Example: export PFX_PASS='your_real_pfx_password'

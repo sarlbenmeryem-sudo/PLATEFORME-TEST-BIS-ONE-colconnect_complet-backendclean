@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+wait_apt() {
+  for i in $(seq 1 60); do
+    if sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+       sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+       sudo fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
+      echo "APT locked... wait ($i/60)"
+      sleep 5
+      continue
+    fi
+    return 0
+  done
+  echo "APT still locked after 5min" >&2
+  return 1
+}
+
+echo "== deps =="
+wait_apt
+sudo apt-get update -y
+wait_apt
+sudo apt-get install -y git ca-certificates curl
+
+echo "== docker =="
+if ! command -v docker >/dev/null 2>&1; then
+  curl -fsSL https://get.docker.com | sudo sh
+fi
+sudo usermod -aG docker azureuser || true
+sudo systemctl enable --now docker || true
+
+echo "== code sync =="
+sudo mkdir -p /opt/colconnect
+sudo chown -R "$USER:$USER" /opt/colconnect
+
+if [ ! -d /opt/colconnect/app/.git ]; then
+  git clone --branch "main" --depth 1 "https://github.com/TON_ORG/TON_REPO.git" /opt/colconnect/app
+else
+  cd /opt/colconnect/app
+  git fetch --all
+  git reset --hard "origin/main"
+fi
+
+echo "== build & run =="
+cd /opt/colconnect/app
+sudo docker rm -f colconnect-api >/dev/null 2>&1 || true
+sudo docker build -t colconnect-api:local .
+sudo docker run -d --name colconnect-api --restart=always -p 8000:8000 colconnect-api:local
+
+echo "== verify =="
+sleep 3
+curl -fsS http://127.0.0.1:8000/health >/dev/null || curl -fsS http://127.0.0.1:8000/docs >/dev/null
+echo "OK: API up on :8000"

@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ============================
+# Patch: NSG Lockdown VMSS subnet (AppGW-only -> 8000) using known AppGW CIDR
+# ID: CC_PATCH_NSG_LOCKDOWN_VMSS_SUBNET_V6_20260301
+# ============================
+
+RG="rg-colconnect-prod-frc"
+APPGW="agw-colconnect-prod"
+VMSS="vmss-api-colconnect-prod"
+
+API_PORT="8000"
+NSG="nsg-colconnect-vmss-api-prod-frc"
+
+# ✅ From your diag:
+APPGW_VNET="vnet-colconnect-prod-frc"
+APPGW_SUBNET="snet-appgw"
+APPGW_CIDRS=("10.10.0.0/24")
+
+echo "== [CC_PATCH_NSG_LOCKDOWN_VMSS_SUBNET_V6_20260301] Start =="
+
+need(){ command -v "$1" >/dev/null 2>&1 || { echo "❌ Missing $1" >&2; exit 1; }; }
+need az
+need jq
+
+az account show -o none
+
+az_retry() {
+  local max=12 n=1 delay=6
+  while true; do
+    set +e
+    out="$("$@" 2>&1)"; code=$?
+    set -e
+    if [[ $code -eq 0 ]]; then return 0; fi
+    if echo "$out" | grep -Eqi "PutApplicationGatewayOperation|Another operation is in progress|OperationPreempted|was being modified|TooManyRequests|429|timeout|temporar|Transient"; then
+      if [[ $n -ge $max ]]; then
+        echo "❌ Retry exhausted ($max). Last error:" >&2
+        echo "$out" >&2
+        return 1
+      fi
+      echo "⏳ Azure transient error (retry $n/$max) in ${delay}s..."
+      sleep "$delay"; n=$((n+1)); delay=$((delay+4))
+      continue
+    fi
+    echo "❌ Azure command failed:" >&2
+    echo "$out" >&2
+    return 1
+  done
+}
+
+echo ""
+echo "== [1] Discover VMSS subnet id =="
+vmss_subnet_id="$(az vmss show -g "$RG" -n "$VMSS" --query "virtualMachineProfile.networkProfile.networkInterfaceConfigurations[0].ipConfigurations[0].subnet.id" -o tsv)"
+if [[ -z "${vmss_subnet_id:-}" || "$vmss_subnet_id" == "null" ]]; then
+  echo "❌ VMSS subnet not found" >&2
+  exit 1
+fi
+
+vmss_vnet="$(echo "$vmss_subnet_id" | awk -F/ '{for(i=1;i<=NF;i++) if($i=="virtualNetworks"){print $(i+1); exit}}')"
+vmss_subnet="$(echo "$vmss_subnet_id" | awk -F/ '{for(i=1;i<=NF;i++) if($i=="subnets"){print $(i+1); exit}}')"
+echo "✅ VMSS subnet: $vmss_vnet/$vmss_subnet"
+echo "✅ VMSS subnet id: $vmss_subnet_id"
+
+echo ""
+echo "== [2] Ensure NSG exists =="
+if az network nsg show -g "$RG" -n "$NSG" >/dev/null 2>&1; then
+  echo "✅ NSG exists: $NSG"
+else
+  echo "Creating NSG: $NSG"
+  az_retry az network nsg create -g "$RG" -n "$NSG" -o none
+  echo "✅ NSG created"
+fi
+
+echo ""
+echo "== [3] Upsert CC rules (delete old cc-*) =="
+existing="$(az network nsg rule list -g "$RG" --nsg-name "$NSG" --query "[?starts_with(name,'cc-')].name" -o tsv || true)"
+for r in $existing; do
+  az network nsg rule delete -g "$RG" --nsg-name "$NSG" -n "$r" >/dev/null 2>&1 || true
+done
+
+prio=200
+idx=0
+for cidr in "${APPGW_CIDRS[@]}"; do
+  az_retry az network nsg rule create -g "$RG" --nsg-name "$NSG" -n "cc-allow-appgw-to-api-8000-$idx" \
+    --priority "$prio" --direction Inbound --access Allow --protocol Tcp \
+    --source-address-prefixes "$cidr" --source-port-ranges "*" \
+    --destination-address-prefixes "*" --destination-port-ranges "$API_PORT" \
+    --description "CC: Allow AppGW subnet $APPGW_VNET/$APPGW_SUBNET ($cidr) -> API $API_PORT" \
+    -o none
+  prio=$((prio+1))
+  idx=$((idx+1))
+done
+
+az_retry az network nsg rule create -g "$RG" --nsg-name "$NSG" -n "cc-deny-any-to-api-8000" \
+  --priority 300 --direction Inbound --access Deny --protocol Tcp \
+  --source-address-prefixes "*" --source-port-ranges "*" \
+  --destination-address-prefixes "*" --destination-port-ranges "$API_PORT" \
+  --description "CC: Deny direct inbound to API port $API_PORT from anywhere" \
+  -o none
+
+echo "✅ Rules applied"
+
+echo ""
+echo "== [4] Attach NSG to VMSS subnet =="
+az_retry az network vnet subnet update -g "$RG" --vnet-name "$vmss_vnet" -n "$vmss_subnet" \
+  --network-security-group "$NSG" -o none
+echo "✅ NSG attached to VMSS subnet"
+
+echo ""
+echo "== [5] Show CC rules =="
+az network nsg rule list -g "$RG" --nsg-name "$NSG" \
+  --query "[?starts_with(name,'cc-')].[priority,name,access,sourceAddressPrefix,destinationPortRange]" -o table
+
+echo ""
+echo "== [6] AppGW backend health sanity =="
+az network application-gateway show-backend-health -g "$RG" -n "$APPGW" -o table || true
+
+echo ""
+echo "== Rollback Git (1 step) =="
+echo "git reset --hard HEAD~1"
+
+echo ""
+echo "== [CC_PATCH_NSG_LOCKDOWN_VMSS_SUBNET_V6_20260301] Done =="

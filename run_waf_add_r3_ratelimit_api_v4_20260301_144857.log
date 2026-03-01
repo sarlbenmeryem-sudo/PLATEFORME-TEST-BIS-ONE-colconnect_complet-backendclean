@@ -1,0 +1,5 @@
+== [CC_PATCH_WAF_ADD_R3_RATELIMIT_API_V4] Start ==
+== Detect group-by schema from CLI help ==
+Using group-by json: [{"name":"ClientAddr"}]
+
+== Recreate rule: r3 (RateLimitRule) ==

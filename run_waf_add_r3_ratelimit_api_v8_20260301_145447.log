@@ -1,0 +1,16 @@
+== [CC_PATCH_WAF_ADD_R3_RATELIMIT_API_V8] Start ==
+== Fetch existing r1 and r2 objects ==
+✅ r1 and r2 found
+
+== Apply customRules atomically: r1 + r2 + r3 (RateLimitRule) ==
+✅ Added r3 (RateLimitRule)
+
+== Verify custom rules ==
+Name    Priority    RuleType       Action
+------  ----------  -------------  --------
+r1      10          MatchRule      Block
+r2      20          MatchRule      Block
+r3      30          RateLimitRule  Block
+
+Rollback (git): git reset --hard HEAD~1
+== Done ==

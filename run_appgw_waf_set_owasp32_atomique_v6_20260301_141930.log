@@ -1,0 +1,29 @@
+== [CC_PATCH_APPGW_WAF_SET_OWASP32_ATOMIQUE_V6] Start ==
+== Show current managed rule sets (before) ==
+[
+  {
+    "ruleGroupOverrides": [],
+    "ruleSetType": "Microsoft_DefaultRuleSet",
+    "ruleSetVersion": "2.1"
+  }
+]
+
+== Atomically set managedRules.managedRuleSets = [OWASP 3.2] ==
+
+== Set policy mode: Prevention + body check + limits ==
+
+== Re-attach policy to AppGW (ensure) ==
+
+== Verify (after) ==
+{
+  "managedRuleSets": [
+    {
+      "type": "OWASP",
+      "version": "3.2"
+    }
+  ],
+  "mode": "Prevention"
+}
+
+Rollback (git): git reset --hard HEAD~1
+== Done ==

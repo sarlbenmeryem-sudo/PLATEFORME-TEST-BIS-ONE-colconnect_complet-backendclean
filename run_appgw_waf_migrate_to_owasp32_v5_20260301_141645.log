@@ -1,0 +1,21 @@
+== [CC_PATCH_APPGW_WAF_MIGRATE_TO_OWASP32_V5] Start ==
+== Ensure WAF policy exists ==
+
+== Snapshot current managed rule sets (before) ==
+{
+  "exclusions": [],
+  "managedRuleSets": [
+    {
+      "ruleGroupOverrides": [],
+      "ruleSetType": "Microsoft_DefaultRuleSet",
+      "ruleSetVersion": "2.1"
+    }
+  ]
+}
+
+== Remove Microsoft_DefaultRuleSet 2.1 (primary) ==
+❌ Failed to remove Microsoft_DefaultRuleSet 2.1
+ERROR: (ApplicationGatewayFirewallManagedRuleSetsNoValidPrimaryRuleSetsAttached) Firewall policy /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/wafp-colconnect-prod does not have any valid Primary Rule Set attached to it.
+Code: ApplicationGatewayFirewallManagedRuleSetsNoValidPrimaryRuleSetsAttached
+Message: Firewall policy /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.Network/ApplicationGatewayWebApplicationFirewallPolicies/wafp-colconnect-prod does not have any valid Primary Rule Set attached to it.
+Rollback (git): git reset --hard HEAD~1

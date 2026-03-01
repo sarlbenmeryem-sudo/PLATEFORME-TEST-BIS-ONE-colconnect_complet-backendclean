@@ -1,0 +1,29 @@
+{
+  "priority": 30,
+  "ruleType": "RateLimitRule",
+  "action": "Block",
+  "rateLimitDuration": "OneMin",
+  "rateLimitThreshold": 200,
+  "groupByUserSession": [
+    {
+      "groupByVariables": [
+        {
+          "variableName": "ClientAddr"
+        }
+      ]
+    }
+  ],
+  "matchConditions": [
+    {
+      "matchVariables": [
+        {
+          "variableName": "RequestUri"
+        }
+      ],
+      "operator": "BeginsWith",
+      "matchValues": ["/api/"],
+      "negationCondition": false,
+      "transforms": ["Lowercase"]
+    }
+  ]
+}

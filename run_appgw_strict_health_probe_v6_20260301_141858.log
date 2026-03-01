@@ -1,0 +1,10 @@
+== [CC_PATCH_APPGW_STRICT_HEALTH_PROBE_V6] Start ==
+== Update http-settings (force Host header) ==
+
+== Read current probe state ==
+pickHostNameFromBackendHttpSettings=false
+probe.host='10.10.2.10'
+
+== Ensure strict probe settings (path/status/interval/timeout) without toggling host yet ==
+
+== pickHostNameFromBackendHttpSettings is FALSE -> set host to a valid value first ==

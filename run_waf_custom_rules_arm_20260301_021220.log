@@ -1,0 +1,17 @@
+== Policy: waf-colconnect-prod ==
+
+== [1] GET current policy (try api versions) ==
+✅ GET ok (api-version=2023-09-01)
+
+== [2] Upsert customRules in policy JSON ==
+== [3] PUT updated policy ==
+✅ PUT ok
+
+== [4] Verify custom rules list (via az CLI) ==
+Action    Name                   Priority    RuleType    State
+--------  ---------------------  ----------  ----------  -------
+Block     cr-block-common-scans  3           MatchRule   Enabled
+
+== Rollback Git (1 step) ==
+git reset --hard HEAD~1
+== Done ==

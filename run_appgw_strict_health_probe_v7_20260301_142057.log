@@ -1,0 +1,20 @@
+== [CC_PATCH_APPGW_STRICT_HEALTH_PROBE_V7] Start ==
+== Ensure http-settings has correct Host header ==
+
+== Read probe state (before) ==
+{
+  "host": "10.10.2.10",
+  "interval": 15,
+  "match": [
+    "200-399"
+  ],
+  "path": "/api/v1/health",
+  "pick": false,
+  "timeout": 5
+}
+
+== Apply strict probe settings (path/status/interval/timeout) ==
+
+== Step 1: make sure host is NON-empty while pickHostNameFromBackendHttpSettings is false ==
+
+== Step 2: enable pickHostNameFromBackendHttpSettings (host will be taken from http-settings) ==

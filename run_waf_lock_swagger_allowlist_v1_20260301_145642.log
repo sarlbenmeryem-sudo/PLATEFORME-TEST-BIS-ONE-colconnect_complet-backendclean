@@ -1,0 +1,19 @@
+== [CC_PATCH_WAF_LOCK_SWAGGER_ALLOWLIST_V1] Start ==
+Allowed IPs JSON: ["1.2.3.4/32"]
+== Fetch existing r1 r2 r3 ==
+✅ r1 r2 r3 found
+
+== Apply customRules atomically: r1+r2+r3 + r4(allow) + r5(block) ==
+✅ Swagger/OpenAPI locked (r4 allowlist, r5 block)
+
+== Verify rules ==
+Name    Priority    RuleType       Action
+------  ----------  -------------  --------
+r1      10          MatchRule      Block
+r2      20          MatchRule      Block
+r3      30          RateLimitRule  Block
+r4      40          MatchRule      Allow
+r5      50          MatchRule      Block
+
+Rollback (git): git reset --hard HEAD~1
+== Done ==

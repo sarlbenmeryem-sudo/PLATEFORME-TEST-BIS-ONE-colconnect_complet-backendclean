@@ -1,0 +1,165 @@
+== [CC_PATCH_MONITOR_ALERTS_WAF_V6_SCHEMA_PROBE_AND_ALERT] Start ==
+== Ensure extensions ==
+== Resolve Log Analytics workspace identifiers ==
+LAW customerId: 8ea58225-84d2-4012-80b1-912328edfe7e
+LAW resourceId: /subscriptions/cc3a790a-d8c5-4d0e-8ef4-d802a48c2d1b/resourceGroups/rg-colconnect-prod-frc/providers/Microsoft.OperationalInsights/workspaces/law-colconnect-prod-frc
+== Resolve Action Group ID ==
+AG_ID: /subscriptions/CC3A790A-D8C5-4D0E-8EF4-D802A48C2D1B/resourceGroups/rg-colconnect-prod-frc/providers/microsoft.insights/actionGroups/ag-colconnect-prod-alerts
+
+== Probe WAF log schema (ApplicationGatewayFirewallLog) ==
+ColumnName                                                                    ColumnOrdinal    ColumnType    DataType         TableName
+----------------------------------------------------------------------------  ---------------  ------------  ---------------  -----------
+TenantId                                                                      0                string        System.String    getschema
+TimeGenerated                                                                 1                datetime      System.DateTime  getschema
+ResourceId                                                                    2                string        System.String    getschema
+Category                                                                      3                string        System.String    getschema
+ResourceGroup                                                                 4                string        System.String    getschema
+SubscriptionId                                                                5                string        System.String    getschema
+ResourceProvider                                                              6                string        System.String    getschema
+Resource                                                                      7                string        System.String    getschema
+ResourceType                                                                  8                string        System.String    getschema
+OperationName                                                                 9                string        System.String    getschema
+ResultType                                                                    10               string        System.String    getschema
+CorrelationId                                                                 11               string        System.String    getschema
+ResultDescription                                                             12               string        System.String    getschema
+Tenant_g                                                                      13               string        System.String    getschema
+JobId_g                                                                       14               string        System.String    getschema
+RunbookName_s                                                                 15               string        System.String    getschema
+StreamType_s                                                                  16               string        System.String    getschema
+Caller_s                                                                      17               string        System.String    getschema
+requestUri_s                                                                  18               string        System.String    getschema
+Level                                                                         19               string        System.String    getschema
+DurationMs                                                                    20               long          System.Int64     getschema
+CallerIPAddress                                                               21               string        System.String    getschema
+OperationVersion                                                              22               string        System.String    getschema
+ResultSignature                                                               23               string        System.String    getschema
+id_s                                                                          24               string        System.String    getschema
+status_s                                                                      25               string        System.String    getschema
+LogicalServerName_s                                                           26               string        System.String    getschema
+Message                                                                       27               string        System.String    getschema
+clientInfo_s                                                                  28               string        System.String    getschema
+httpStatusCode_d                                                              29               real          System.Double    getschema
+identity_claim_appid_g                                                        30               string        System.String    getschema
+identity_claim_http_schemas_microsoft_com_identity_claims_objectidentifier_g  31               string        System.String    getschema
+userAgent_s                                                                   32               string        System.String    getschema
+ruleName_s                                                                    33               string        System.String    getschema
+identity_claim_http_schemas_xmlsoap_org_ws_2005_05_identity_claims_upn_s      34               string        System.String    getschema
+systemId_g                                                                    35               string        System.String    getschema
+isAccessPolicyMatch_b                                                         36               bool          System.SByte     getschema
+EventName_s                                                                   37               string        System.String    getschema
+httpMethod_s                                                                  38               string        System.String    getschema
+subnetId_s                                                                    39               string        System.String    getschema
+type_s                                                                        40               string        System.String    getschema
+instanceId_s                                                                  41               string        System.String    getschema
+macAddress_s                                                                  42               string        System.String    getschema
+vnetResourceGuid_g                                                            43               string        System.String    getschema
+direction_s                                                                   44               string        System.String    getschema
+subnetPrefix_s                                                                45               string        System.String    getschema
+primaryIPv4Address_s                                                          46               string        System.String    getschema
+conditions_sourcePortRange_s                                                  47               string        System.String    getschema
+priority_d                                                                    48               real          System.Double    getschema
+conditions_destinationPortRange_s                                             49               string        System.String    getschema
+conditions_destinationIP_s                                                    50               string        System.String    getschema
+conditions_None_s                                                             51               string        System.String    getschema
+conditions_sourceIP_s                                                         52               string        System.String    getschema
+httpVersion_s                                                                 53               string        System.String    getschema
+matchedConnections_d                                                          54               real          System.Double    getschema
+startTime_t                                                                   55               datetime      System.DateTime  getschema
+endTime_t                                                                     56               datetime      System.DateTime  getschema
+DatabaseName_s                                                                57               string        System.String    getschema
+clientIP_s                                                                    58               string        System.String    getschema
+host_s                                                                        59               string        System.String    getschema
+requestQuery_s                                                                60               string        System.String    getschema
+sslEnabled_s                                                                  61               string        System.String    getschema
+clientPort_d                                                                  62               real          System.Double    getschema
+httpStatus_d                                                                  63               real          System.Double    getschema
+receivedBytes_d                                                               64               real          System.Double    getschema
+sentBytes_d                                                                   65               real          System.Double    getschema
+timeTaken_d                                                                   66               real          System.Double    getschema
+resultDescription_ErrorJobs_s                                                 67               string        System.String    getschema
+resultDescription_ChildJobs_s                                                 68               string        System.String    getschema
+identity_claim_http_schemas_microsoft_com_identity_claims_scope_s             69               string        System.String    getschema
+workflowId_s                                                                  70               string        System.String    getschema
+resource_location_s                                                           71               string        System.String    getschema
+resource_workflowId_g                                                         72               string        System.String    getschema
+resource_resourceGroupName_s                                                  73               string        System.String    getschema
+resource_subscriptionId_g                                                     74               string        System.String    getschema
+resource_runId_s                                                              75               string        System.String    getschema
+resource_workflowName_s                                                       76               string        System.String    getschema
+_schema_s                                                                     77               string        System.String    getschema
+correlation_clientTrackingId_s                                                78               string        System.String    getschema
+properties_sku_Family_s                                                       79               string        System.String    getschema
+properties_sku_Name_s                                                         80               string        System.String    getschema
+properties_tenantId_g                                                         81               string        System.String    getschema
+properties_enabledForDeployment_b                                             82               bool          System.SByte     getschema
+code_s                                                                        83               string        System.String    getschema
+resultDescription_Summary_MachineId_s                                         84               string        System.String    getschema
+resultDescription_Summary_ScheduleName_s                                      85               string        System.String    getschema
+resultDescription_Summary_Status_s                                            86               string        System.String    getschema
+resultDescription_Summary_StatusDescription_s                                 87               string        System.String    getschema
+resultDescription_Summary_MachineName_s                                       88               string        System.String    getschema
+resultDescription_Summary_TotalUpdatesInstalled_d                             89               real          System.Double    getschema
+resultDescription_Summary_RebootRequired_b                                    90               bool          System.SByte     getschema
+resultDescription_Summary_TotalUpdatesFailed_d                                91               real          System.Double    getschema
+resultDescription_Summary_InstallPercentage_d                                 92               real          System.Double    getschema
+resultDescription_Summary_StartDateTimeUtc_t                                  93               datetime      System.DateTime  getschema
+resource_triggerName_s                                                        94               string        System.String    getschema
+resultDescription_Summary_InitialRequiredUpdatesCount_d                       95               real          System.Double    getschema
+properties_enabledForTemplateDeployment_b                                     96               bool          System.SByte     getschema
+resultDescription_Summary_EndDateTimeUtc_s                                    97               string        System.String    getschema
+resultDescription_Summary_DurationInMinutes_s                                 98               string        System.String    getschema
+resource_originRunId_s                                                        99               string        System.String    getschema
+properties_enabledForDiskEncryption_b                                         100              bool          System.SByte     getschema
+resource_actionName_s                                                         101              string        System.String    getschema
+correlation_actionTrackingId_g                                                102              string        System.String    getschema
+resultDescription_Summary_EndDateTimeUtc_t                                    103              datetime      System.DateTime  getschema
+resultDescription_Summary_DurationInMinutes_d                                 104              real          System.Double    getschema
+conditions_protocols_s                                                        105              string        System.String    getschema
+identity_claim_ipaddr_s                                                       106              string        System.String    getschema
+ElasticPoolName_s                                                             107              string        System.String    getschema
+identity_claim_http_schemas_microsoft_com_claims_authnmethodsreferences_s     108              string        System.String    getschema
+RunOn_s                                                                       109              string        System.String    getschema
+query_hash_s                                                                  110              string        System.String    getschema
+SourceSystem                                                                  111              string        System.String    getschema
+MG                                                                            112              string        System.String    getschema
+ManagementGroupName                                                           113              string        System.String    getschema
+Computer                                                                      114              string        System.String    getschema
+RawData                                                                       115              string        System.String    getschema
+listenerName_s                                                                116              string        System.String    getschema
+backendPoolName_s                                                             117              string        System.String    getschema
+backendSettingName_s                                                          118              string        System.String    getschema
+timeStamp_t                                                                   119              datetime      System.DateTime  getschema
+originalRequestUriWithArgs_s                                                  120              string        System.String    getschema
+contentType_s                                                                 121              string        System.String    getschema
+error_info_s                                                                  122              string        System.String    getschema
+connectionSerialNumber_d                                                      123              real          System.Double    getschema
+noOfConnectionRequests_d                                                      124              real          System.Double    getschema
+clientResponseTime_d                                                          125              real          System.Double    getschema
+WAFEvaluationTime_s                                                           126              string        System.String    getschema
+WAFMode_s                                                                     127              string        System.String    getschema
+WAFPolicyID_s                                                                 128              string        System.String    getschema
+transactionId_g                                                               129              string        System.String    getschema
+sslCipher_s                                                                   130              string        System.String    getschema
+sslProtocol_s                                                                 131              string        System.String    getschema
+sslClientVerify_s                                                             132              string        System.String    getschema
+sslClientCertificateFingerprint_s                                             133              string        System.String    getschema
+sslClientCertificateIssuerName_s                                              134              string        System.String    getschema
+serverRouted_s                                                                135              string        System.String    getschema
+serverStatus_s                                                                136              string        System.String    getschema
+serverResponseLatency_s                                                       137              string        System.String    getschema
+serverConnectTime_s                                                           138              string        System.String    getschema
+serverHeaderTime_s                                                            139              string        System.String    getschema
+upstreamSourcePort_s                                                          140              string        System.String    getschema
+originalHost_s                                                                141              string        System.String    getschema
+backendSslProtocol_s                                                          142              string        System.String    getschema
+backendSslCipher_s                                                            143              string        System.String    getschema
+AdditionalFields                                                              144              dynamic       System.Object    getschema
+Type                                                                          145              string        System.String    getschema
+_ResourceId                                                                   146              string        System.String    getschema
+
+== Probe one sample record (last 24h) ==
+[]
+
+== Recreate alert (delete if exists) ==
+
+== Create alert: API WAF hits spike (> 80 / 5m) ==
