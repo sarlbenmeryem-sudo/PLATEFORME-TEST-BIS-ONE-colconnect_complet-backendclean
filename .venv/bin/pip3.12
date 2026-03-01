@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/mnt/c/Users/benme/Desktop/PLATEFORME TEST BIS ONE/colconnect_complet/backend/.venv/bin/python3" "$0" "$@"
+'''exec' "/mnt/c/Users/benme/Desktop/PLATEFORME TEST BIS ONE/colconnect_complet/backend/.venv/bin/python" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

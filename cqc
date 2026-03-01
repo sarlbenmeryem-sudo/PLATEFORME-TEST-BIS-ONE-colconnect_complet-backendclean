@@ -1,0 +1,48 @@
+[35m.venv/lib/python3.12/site-packages/ecdsa/keys.py[m[36m:[m[32m941[m[36m:[m        PKCS#8 files have the header ``[1;31mBEGIN PRIVATE KEY[m``.
+[35m.venv/lib/python3.12/site-packages/ecdsa/keys.py[m[36m:[m[32m974[m[36m:[m            private_key_index = string.index(b"-----[1;31mBEGIN PRIVATE KEY[m-----")
+[35m.venv/lib/python3.12/site-packages/ecdsa/keys.py[m[36m:[m[32m1188[m[36m:[m        ``[1;31mBEGIN PRIVATE KEY[m``, depending on the desired format.
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m536[m[36m:[m            "-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m566[m[36m:[m            "-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m591[m[36m:[m            "-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m658[m[36m:[m            "-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m754[m[36m:[m            "-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m774[m[36m:[m            b"-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m820[m[36m:[m            "-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m846[m[36m:[m            b"-----[1;31mBEGIN PRIVATE KEY[m-----\n"
+[35m.venv/lib/python3.12/site-packages/ecdsa/test_keys.py[m[36m:[m[32m1132[m[36m:[m    pem = """-----[1;31mBEGIN PRIVATE KEY[m-----
+[35mapi/routes_system.py[m[36m:[m[32m27[m[36m:[m    s = os.getenv("[1;31mJWT_SECRET[m", "")
+[35mapi/routes_system.py[m[36m:[m[32m59[m[36m:[m    s = os.getenv("[1;31mJWT_SECRET[m", "")
+[35mapi/routes_system.py[m[36m:[m[32m72[m[36m:[m    s = os.getenv("[1;31mJWT_SECRET[m", "")
+[35mauth/dependencies.py[m[36m:[m[32m10[m[36m:[m[1;31mJWT_SECRET[m = os.getenv("[1;31mJWT_SECRET[m", "dev-secret").strip().strip()
+[35mauth/dependencies.py[m[36m:[m[32m26[m[36m:[m        payload = jwt.decode(token, [1;31mJWT_SECRET[m, algorithms=[JWT_ALGO])
+[35mcc_mongo_index_collectivites_v1.py[m[36m:[m[32m5[m[36m:[m[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m")
+[35mcc_mongo_index_collectivites_v1.py[m[36m:[m[32m9[m[36m:[m    client = AsyncIOMotorClient([1;31mMONGO_URI[m)
+[35mcc_patch_api_collectivites_search_show_v1.sh[m[36m:[m[32m77[m[36m:[m[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m")
+[35mcc_patch_api_collectivites_search_show_v1.sh[m[36m:[m[32m81[m[36m:[m    client = AsyncIOMotorClient([1;31mMONGO_URI[m)
+[35mdatabase/mongo.py[m[36m:[m[32m5[m[36m:[m_[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m", "")
+[35mdatabase/mongo.py[m[36m:[m[32m6[m[36m:[m_client = MongoClient(_[1;31mMONGO_URI[m) if _[1;31mMONGO_URI[m else None
+[35mdatabase/mongo.py[m[36m:[m[32m11[m[36m:[m        raise RuntimeError("MongoDB non configuré ([1;31mMONGO_URI[m manquant)")
+[35mdatabase/mongo.py.bak.20260226_020102[m[36m:[m[32m4[m[36m:[m_[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m", "")
+[35mdatabase/mongo.py.bak.20260226_020102[m[36m:[m[32m5[m[36m:[m_client = MongoClient(_[1;31mMONGO_URI[m) if _[1;31mMONGO_URI[m else None
+[35mdatabase/mongo.py.bak.20260226_020102[m[36m:[m[32m10[m[36m:[m        raise RuntimeError("MongoDB non configuré ([1;31mMONGO_URI[m manquant)")
+[35mdocker-compose.local.yml[m[36m:[m[32m7[m[36m:[m      - [1;31mMONGO_URI[m=${[1;31mMONGO_URI[m:-}
+[35mdocker-compose.local.yml[m[36m:[m[32m8[m[36m:[m      - [1;31mJWT_SECRET[m=${[1;31mJWT_SECRET[m:-dev-secret}
+[35mgenerate_token.py[m[36m:[m[32m5[m[36m:[msecret = os.environ["[1;31mJWT_SECRET[m"]
+[35mgenerate_token_forbidden.py[m[36m:[m[32m3[m[36m:[msecret = os.environ["[1;31mJWT_SECRET[m"]
+[35mserver.py.bak.20260225-154622[m[36m:[m[32m18[m[36m:[m[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m", "").strip()
+[35mserver.py.bak.20260225-154622[m[36m:[m[32m55[m[36m:[m    if not [1;31mMONGO_URI[m:
+[35mserver.py.bak.20260225-154622[m[36m:[m[32m56[m[36m:[m        raise HTTPException(status_code=500, detail="MongoDB non configuré ([1;31mMONGO_URI[m manquante)")
+[35mserver.py.bak.20260225-154622[m[36m:[m[32m60[m[36m:[m            mongo_client = MongoClient([1;31mMONGO_URI[m, serverSelectionTimeoutMS=5000)
+[35mserver.py.bak.20260225-154622[m[36m:[m[32m134[m[36m:[m    if not [1;31mMONGO_URI[m:
+[35mserver.py.bak.20260225-154622[m[36m:[m[32m140[m[36m:[m            mongo_client = MongoClient([1;31mMONGO_URI[m, serverSelectionTimeoutMS=5000)
+[35mserver.py.bak.20260225-155214[m[36m:[m[32m17[m[36m:[m[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m", "").strip()
+[35mserver.py.bak.20260225-155214[m[36m:[m[32m54[m[36m:[m    if not [1;31mMONGO_URI[m:
+[35mserver.py.bak.20260225-155214[m[36m:[m[32m55[m[36m:[m        raise HTTPException(status_code=500, detail="MongoDB non configuré ([1;31mMONGO_URI[m manquante)")
+[35mserver.py.bak.20260225-155214[m[36m:[m[32m59[m[36m:[m            mongo_client = MongoClient([1;31mMONGO_URI[m, serverSelectionTimeoutMS=5000)
+[35mserver.py.bak.20260225-155214[m[36m:[m[32m133[m[36m:[m    if not [1;31mMONGO_URI[m:
+[35mserver.py.bak.20260225-155214[m[36m:[m[32m139[m[36m:[m            mongo_client = MongoClient([1;31mMONGO_URI[m, serverSelectionTimeoutMS=5000)
+[35mserver.py.bak.20260226_015634[m[36m:[m[32m17[m[36m:[m[1;31mMONGO_URI[m = os.getenv("[1;31mMONGO_URI[m", "").strip()
+[35mserver.py.bak.20260226_015634[m[36m:[m[32m52[m[36m:[m    if not [1;31mMONGO_URI[m:
+[35mserver.py.bak.20260226_015634[m[36m:[m[32m53[m[36m:[m        raise HTTPException(status_code=500, detail="MongoDB non configuré ([1;31mMONGO_URI[m manquante)")
+[35mserver.py.bak.20260226_015634[m[36m:[m[32m57[m[36m:[m            mongo_client = MongoClient([1;31mMONGO_URI[m, serverSelectionTimeoutMS=5000)
+[35mserver.py.bak.20260226_015634[m[36m:[m[32m121[m[36m:[m    if not [1;31mMONGO_URI[m:
