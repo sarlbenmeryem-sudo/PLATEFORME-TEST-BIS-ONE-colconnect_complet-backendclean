@@ -1,0 +1,57 @@
+name: Deploy ColConnect API to Azure VMSS (prod)
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Motif du déploiement (optionnel)"
+        required: false
+        default: "manual"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+
+    env:
+      # Ces valeurs doivent correspondre à ton script E2E existant
+      AZ_RG: rg-colconnect-prod-frc
+      AZ_ACR: acrcolconnectprodfrc
+      AZ_VMSS_NAME: vmss-api-colconnect-prod
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure login (service principal)
+        uses: azure/login@v2
+        with:
+          # Secret GitHub contenant les credentials du service principal JSON
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Azure CLI version
+        run: az version
+
+      - name: Run E2E ACR build + VMSS redeploy script
+        working-directory: ./backend
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "== CONTEXTE =="
+          pwd
+          ls
+
+          if [ ! -x "./CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh" ]; then
+            echo "Rend le script exécutable"
+            chmod +x ./CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh
+          fi
+
+          echo "== Azure account (vérification) =="
+          az account show -o table
+
+          echo "== Lancement du script E2E ColConnect prod =="
+          ./CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh
+
