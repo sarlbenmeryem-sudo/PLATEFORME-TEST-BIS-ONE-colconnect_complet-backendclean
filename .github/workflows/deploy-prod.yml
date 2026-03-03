@@ -35,6 +35,7 @@ jobs:
         run: az version
 
       - name: Run E2E ACR build + VMSS redeploy script
+        working-directory: ./backend
         shell: bash
         run: |
           set -euo pipefail
