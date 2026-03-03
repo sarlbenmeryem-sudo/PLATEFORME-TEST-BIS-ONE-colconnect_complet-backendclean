@@ -50,5 +50,5 @@ sudo docker run -d --name colconnect-api --restart=always -p 8000:8000 colconnec
 
 echo "== verify =="
 sleep 3
-curl -fsS http://127.0.0.1:8000/health >/dev/null || curl -fsS http://127.0.0.1:8000/docs >/dev/null
+curl -fsS -H "Host: api.colconnect.fr" http://127.0.0.1:8000/api/v1/health >/dev/null || curl -fsS http://127.0.0.1:8000/docs >/dev/null
 echo "OK: API up on :8000"
