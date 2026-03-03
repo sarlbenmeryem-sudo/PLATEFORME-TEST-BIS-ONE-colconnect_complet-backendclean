@@ -42,9 +42,24 @@ def _read_deploy_sha() -> str:
             return s
     return "unknown"
 
+# ---- CC: DEPLOY_SHA (build arg) precedence for /api/deploy ----
+def _cc_deploy_sha() -> str:
+    v = os.getenv("DEPLOY_SHA")
+    if v and v.strip():
+        return v.strip()
+    # fallback: keep existing helpers if present
+    try:
+        return _cc_read_deploy_sha()  # type: ignore[name-defined]
+    except Exception:
+        try:
+            return _read_deploy_sha()  # type: ignore[name-defined]
+        except Exception:
+            return "unknown"
+
+
 @app.get("/api/deploy")
 def api_deploy():
-    return {"deploy_sha": _read_deploy_sha()}
+    return {"deploy_sha": _cc_deploy_sha()}
 
 
 
@@ -70,7 +85,4 @@ def _cc_read_deploy_sha() -> str:
 
 @app.get("/api/deploy")
 def cc_api_deploy():
-    return {
-        "deploy_sha": _cc_read_deploy_sha(),
-        "time_utc": datetime.now(timezone.utc).isoformat(),
-    }
+    return {"deploy_sha": _cc_deploy_sha()}
