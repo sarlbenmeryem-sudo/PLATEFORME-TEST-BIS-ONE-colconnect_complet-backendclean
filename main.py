@@ -46,6 +46,11 @@ def _read_deploy_sha() -> str:
 def api_deploy():
     return {"deploy_sha": _read_deploy_sha()}
 
+
+
+@app.get("/api/v1/deploy")
+def api_v1_deploy():
+    return api_deploy()
 # ---- CC deploy-sha helpers + /api/deploy ----
 import os
 from pathlib import Path
