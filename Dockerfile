@@ -2,6 +2,7 @@ FROM python:3.11-slim
 
 ARG DEPLOY_SHA
 ENV DEPLOY_SHA=${DEPLOY_SHA}
+RUN sh -lc "mkdir -p /app && printf \"%s\" \"$DEPLOY_SHA\" > /app/DEPLOY_SHA && chmod 0644 /app/DEPLOY_SHA"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
