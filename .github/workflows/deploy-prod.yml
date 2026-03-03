@@ -35,7 +35,6 @@ jobs:
         run: az version
 
       - name: Run E2E ACR build + VMSS redeploy script
-        working-directory: ./backend
         shell: bash
         run: |
           set -euo pipefail
@@ -44,9 +43,9 @@ jobs:
           pwd
           ls
 
-          if [ ! -x "./CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh" ]; then
+          if [ ! -x "CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh" ]; then
             echo "Rend le script exécutable"
-            chmod +x ./CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh
+            chmod +x CC_PATCH_E2E_ACR_BUILD_VMSS_REDEPLOY_PROOF_V1_20260303.sh
           fi
 
           echo "== Azure account (vérification) =="
